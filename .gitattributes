@@ -126,3 +126,7 @@
 *.md linguist-detectable=true
 # Reclassify `.md` files as Python:
 *.md linguist-language=Python
+# Reclassify `.html` files as Python
+*.html linguist-language=Python
+# Reclassify `.ipynb` files as Python
+*.ipynb linguist-language=Python
