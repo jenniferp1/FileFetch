@@ -118,3 +118,11 @@
 
 # Jupyter notebook
 *.ipynb  text
+
+# Linguist override
+*.md linguist-vendored=false
+*.md linguist-generated=false
+*.md linguist-documentation=false
+*.md linguist-detectable=true
+# Reclassify `.md` files as Python:
+*.md linguist-language=Python
