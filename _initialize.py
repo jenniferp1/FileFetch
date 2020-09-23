@@ -1,3 +1,4 @@
+# find other in-house packages in directory path
 import os, sys, inspect
 
 currentdir = os.path.dirname(
@@ -6,7 +7,8 @@ currentdir = os.path.dirname(
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import yaml
+# import other homegrown modules
+from utils.readin import read_yaml
 
 
 def allowed_files(allowed):
@@ -15,24 +17,6 @@ def allowed_files(allowed):
     print("\nCurrently allowed file types for download:")
     for ftype in file_list:
         print(f"\t- {ftype}")
-
-
-def read_yaml(params):
-
-    # params list with yaml file name, header
-
-    file_name = params[0]
-    header = params[1]
-
-    try:
-        with open(file_name) as f:
-            data = yaml.load(f, Loader=yaml.FullLoader)
-        return data[header]
-    except Exception as error:
-        print("\nError in reading user supplied yaml")
-        print(error)
-        print("Exiting....")
-        exit()
 
 
 class InitializeCheck:
@@ -108,10 +92,10 @@ class InitializeCheck:
                 self.webref = data["website"]
                 if data["key_phrase"]:
                     if isinstance(data["key_phrase"], dict):
-                        self.key_phrase = None
                         if (data["key_phrase"].get("tag")) and\
                            (data["key_phrase"].get("search")) and\
                            (data["key_phrase"].get("nested")):
+                            self.key_phrase = None
                             self.tag = data["key_phrase"].get("tag")
                             self.search = data["key_phrase"].get("search")
                             if data["key_phrase"].get("nested") == 'yes':
@@ -119,6 +103,8 @@ class InitializeCheck:
                             else:
                                 self.tag2 = False
                             self.file_ext = data["key_phrase"].get("ftype")
+                        else:
+                            self.key_phrase = data["key_phrase"]
 
                     if isinstance(data["key_phrase"], str):
                         self.key_phrase = data["key_phrase"]

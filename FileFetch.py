@@ -1,109 +1,37 @@
 # find other in-house packages in directory path
-import os, sys, inspect
+# import os, sys, inspect
+#
+# currentdir = os.path.dirname(
+#     os.path.abspath(inspect.getfile(inspect.currentframe()))
+# )
+# parentdir = os.path.dirname(currentdir)
+# sys.path.insert(0, parentdir)
 
-currentdir = os.path.dirname(
-    os.path.abspath(inspect.getfile(inspect.currentframe()))
-)
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-
-
+# import standard Python packages
 import os
 import time
 import re
 import pandas as pd
-import numpy as np
 from io import StringIO
-from datetime import datetime, date
+from datetime import date #, datetime
 import calendar
 from pprint import pprint
 
 # import packages for hitting websites
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
 # import pyppdf.patch_pyppeteer
 from requests_html import AsyncHTMLSession
 from urllib.parse import unquote
-import camelot
 
 # import Mixins
 import _initialize  # hold initialization-checking methods
 
 # import other homegrown modules
-import vdh
+from utils.readin import checkdir, get_absolute_path
+from utils.readin import read_yaml, unicodify, check_last_load
+from utils.pdfx import parse_pdf
 
-
-def checkdir(folder):
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    return
-
-
-def get_absolute_path(url, doc_url):
-    return urljoin(url,doc_url)
-
-
-def parse_pdf(url, txt, pdf_name):
-
-    if "www.health.state.mn.us" in url:
-        pdf_page = "7"
-        day = re.findall(r"(\d{1,2}\/\d{1,2}\/\d{4})", txt)[0]
-        day = datetime.strptime(day,"%m/%d/%Y")
-        day = day.strftime("%Y%m%d")
-        file_weeklypos = f"./mdh_weekly_positivity_{day}.csv"
-        mn = parse_mn_weekly_report(pdf_name, pdf_page)  # method to parse table from pdf
-        mn.to_csv(file_weeklypos,index=False)
-        mn = clean_mn_weekly_report(file_weeklypos)
-        return mn
-
-    return pd.DataFrame()
-
-
-def parse_mn_weekly_report(pdf_name, pgs, ws=101):
-
-    tables = camelot.read_pdf(pdf_name, pages=pgs)
-    datatable = pd.DataFrame()
-
-    for t in tables:
-        whitespace = t.parsing_report["whitespace"]
-        if whitespace < ws:
-            ws = whitespace
-            datatable = t
-
-    return datatable.df
-
-
-def clean_mn_weekly_report(file_weeklypos):
-
-    mn = pd.read_csv(file_weeklypos, skiprows=1)
-
-    partitions = 2
-    dfs = np.array_split(mn, partitions, axis=1)
-
-    dfs[0].columns = ["County","Positive"]
-    dfs[1].columns = ["County","Positive"]
-
-    mn = dfs[0].append(dfs[1], ignore_index=True)
-
-    mn.replace("%", "", regex=True, inplace=True)
-    mn.replace("\n", "", regex=True, inplace=True)
-    mn.replace("\t", "", regex=True, inplace=True)
-
-    mn['County'] = mn['County'].str.replace("\-?(\d+\.?\d*|\d*\.?\d+)", "")
-
-    mn = mn[~mn.County.str.startswith("Unknown")]
-
-    fips = pd.read_csv("../selenium/county_fips.csv", dtype={"fips":str})
-    fips = fips[fips.stateiso=="MN"]
-    fips["county"] = fips["county"].str.replace(" County","")
-
-    mn = pd.merge(mn, fips, left_on="County", right_on="county", how="left")
-    mn.drop(columns=["county"], inplace=True)
-
-    # print(mn.head())
-
-    return mn
 
 
 #######################################################
@@ -128,6 +56,7 @@ class FileFetch(_initialize.InitializeCheck):
             "html-stream",
             "findlink",
             "findlinks",
+            "csv-git-scan",
         ]  # update with allowed file types as add capability
 
         # call mixin InitializeCheck class from _initialize.py to make sure user inputs are valid
@@ -136,10 +65,10 @@ class FileFetch(_initialize.InitializeCheck):
         self.init_check(params, params_file)
 
         # print to screen confirmation that initialization worked
-        print(f"\nurl set to '{self.url}'")
-        print(f"file type to download is '{self.file_type}'")
+        print(f"\n\turl set to '{self.url}'")
+        print(f"\tfile type to download is '{self.file_type}'")
         if self.key_phrase:
-            print(f"key_phrase is '{self.key_phrase}'")
+            print(f"\tkey_phrase is '{self.key_phrase}'")
 
         return
 
@@ -179,11 +108,12 @@ class FileFetch(_initialize.InitializeCheck):
                     if self.file_ext == "csv":
                         df = self.fetch_csv_stream(doc_url)
                     if self.file_ext == "pdf":
-                        front = doc_url.split("/")[2]
+                        front = re.findall(r"(?<=\/\/).*?(?=\/)", doc_url)[0]
                         front = front.replace("www.","")
                         front = front.replace(".","-")
-                        back = doc_url.split("/")[-1]
-                        pdf_name = f"{front}_{back}"
+                        back = re.findall(r"([^\/]+$)", doc_url)[0]
+                        curdir = os.getcwd()
+                        pdf_name = f"{curdir}/{front}_{back}"
                         self.download_pdf(doc_url, pdf_name)
                         df = parse_pdf(self.url, txt, pdf_name)
 
@@ -195,12 +125,12 @@ class FileFetch(_initialize.InitializeCheck):
                 doc_urls, txts = self.fetch_links()
                 df_list = []
                 if doc_urls:
-                    print("Searched for multiple links and found the following:")
+                    print("\tSearched for multiple links and found the following:")
                     for doc_url in doc_urls:
                         if self.file_ext == "csv":
                             df = self.fetch_csv_stream(doc_url)
                             df_list.append(df)
-                            print(doc_url)
+                            print(f"\t{doc_url}")
                     print("")
                     df = df_list
                     df_list = []
@@ -208,6 +138,9 @@ class FileFetch(_initialize.InitializeCheck):
                 else:
                     print("Error: findlinks did not return any document links\n")
                     df = pd.DataFrame()
+
+            if self.file_type == "csv-git-scan":
+                df = self.fetch_csv_git_scan()
 
         else:
             # pp = pprint.PrettyPrinter(indent=1)
@@ -219,7 +152,7 @@ class FileFetch(_initialize.InitializeCheck):
             print("Exiting....")
             exit()
 
-        print("Data fetched! Saved to DataFrame.\n")
+        print("\tData fetched! Saved to DataFrame.\n")
 
         return df
 
@@ -232,14 +165,15 @@ class FileFetch(_initialize.InitializeCheck):
             print("Exiting....")
             exit()
 
-        print("Fetching file...\n")
+        print("\tFetching file...\n")
 
         time.sleep(1)
 
         try:
             req = requests.get(self.url)
             if req.ok:
-                data = req.content.decode("utf8")
+                rawdata = req.content
+                data = unicodify(rawdata)
                 df = pd.read_csv(StringIO(data))
                 # TODO return data and create method for converting to dataframe
             else:
@@ -267,6 +201,30 @@ class FileFetch(_initialize.InitializeCheck):
 
         return df
 
+    def fetch_csv_git_scan(self):
+
+        if self.file_type != "csv-git-scan":
+            print(
+                f"\nError: called function to fetch csv-git-scan but your file type is: {self.file_type}"
+            )
+            print("Exiting....")
+            exit()
+
+        print("\tFetching file...\n")
+
+        self.url = check_last_load(self.url, self.key_phrase)
+
+        if self.url:
+            print(f"\n\t*** UPDATED URL FOUND for {self.desc}")
+            urlx = self.url.split('/')[self.url.count('/')]
+            print(f"\t    {urlx} ***\n")
+            self.file_type = "csv"
+            df = self.fetch_csv()
+            return df
+
+        last_date = self.key_phrase["last_date"]
+        return f"\tYou have the most recent version of data: {last_date}"
+
     async def fetch_html_stream(self):
 
         if self.file_type != "html-stream":
@@ -284,7 +242,7 @@ class FileFetch(_initialize.InitializeCheck):
             print("Exiting....")
             exit()
 
-        print("Fetching file...\n")
+        print("\tFetching file...\n")
         # TODO modify call to this method so requires input: key_phrase
 
         r = await self.session.get(self.url)
@@ -333,7 +291,7 @@ class FileFetch(_initialize.InitializeCheck):
             print("Exiting....")
             exit()
 
-        print("Fetching link...\n")
+        print("\tFetching link...\n")
 
         req = requests.get(self.url)
         soup = BeautifulSoup(req.content, 'html.parser')
@@ -403,7 +361,7 @@ class FileFetch(_initialize.InitializeCheck):
             print("Exiting....")
             exit()
 
-        print("Fetching links...\n")
+        print("\tFetching links...\n")
 
         req = requests.get(self.url)
         soup = BeautifulSoup(req.content, 'html.parser')
@@ -461,13 +419,18 @@ class FileFetch(_initialize.InitializeCheck):
         with open(pdf_name, "wb") as p:
             p.write(response.content)
 
-        return print(f"pdf saved as {pdf_name}\n")
+        return print(f"\tpdf saved as {pdf_name}\n")
 
     def save(self, df, fname, ftype="csv", fpath="./", index=False):
 
-        if df.size == 0:
-            print("\n\t*** WARNING *** DataFrame is empty. Trying again.\n")
-            return False
+        if isinstance(df, pd.DataFrame):
+            if df.size == 0:
+                print("\n\t*** WARNING *** DataFrame is empty. Trying again.\n")
+                return False
+        else:
+            print(f"\tNot a DataFrame for {fname}. Skipping save.")
+            print(df) # print message providing latest version date
+            return True
 
         today = date.today()
         save_as = f"{fname}_{today}.{ftype}"
@@ -487,7 +450,7 @@ class FileFetch(_initialize.InitializeCheck):
         elif ftype == "excel":
             df.to_excel(full_path, index=index)
 
-        print(f"File saved to:\t{full_path}\n")
+        print(f"\tFile saved to:\t{full_path}\n")
 
         return True
 
@@ -508,7 +471,7 @@ if __name__ == "__main__":
     #     "file_type": "html-stream",
     #     "key_phrase": key_phrase,
     # }
-    # yaml_file = ["../url_filefetch.yml", "hhs_icu"] # Uncomment
+    # yaml_file = ["../../url_filefetch.yml", "minnesota"] # Uncomment
     #
     # file = FileFetch(params_file=yaml_file) # Uncomment
     # file = FileFetch(params)
@@ -520,18 +483,26 @@ if __name__ == "__main__":
     # print(df.head())
 
     # i = 0
-    # fnames=["test1", "test2", "test3"]
+    # fnames=["hhs_table1", "hhs_table2", "hhs_table3"]
     # fpaths=["./hhs_icu", "./hhs_icu", "./hhs_icu"]
     # if isinstance(df, list):
     #     for table in df:
     #         verify = file.save(table, fname=fnames[i], fpath=fpaths[i])
     #         i += 1
-    #         print(verify)
+    #         # print(verify)
     #
     # print("DONE")
     # # print(df.dtypes)
 
-    # file.save(df, fname="testrun", fpath="./covid_exit_strategy_testing")
+    # file.save(df, fname="testrun", fpath="./") # Uncomment
+
+    # # MINNESOTA TESTING
+    # url = "https://www.health.state.mn.us/diseases/coronavirus/stats/index.html"
+    # txt = "Weekly COVID-19 Report: 9/10/2020 (PDF)"
+    # pdf_name = "/home/jennifp3/Documents/Python_scripts/filefetch/health-state-mn-us_covidweekly37.pdf"
+    #
+    # df = parse_pdf(url, txt, pdf_name)
+    # print(df.head())
 
     # TODO throw specified error (code) if url connection has a problem
     # TODO merge, drop columns, calculate 7-day moving average positivity,
@@ -544,84 +515,100 @@ if __name__ == "__main__":
     # TODO: add csv-googledocs for covid tracking project
     # TODO: add ability to append a date for reading github JHU
 
-    """
-    ########################################################
-    # Daily upload code comment out above test code to run #
-    ########################################################
-    """
-
-    rt_file = ["../url_filefetch.yml", "rt_live"]
-    tat_file = ["../url_filefetch.yml", "test_and_trace"]
-    ces_file = ["../url_filefetch.yml", "covid_exit_strat_testing"]
-    ces_file2 = ["../url_filefetch.yml", "covid_exit_strat_healthcare"]
-    ces_file3 = ["../url_filefetch.yml", "covid_exit_strat_spread"]
-    ctp = ["../url_filefetch.yml", "covid_tracking_proj_race"]
-    ctph = ["../url_filefetch.yml", "covid_tracking_proj_hist"]
-    mn = ["../url_filefetch.yml", "minnesota"]
-    va = ["../url_filefetch.yml", "virginia"]
-    hhs = ["../url_filefetch.yml", "hhs_icu"]
-
-    files = [rt_file, tat_file, ces_file, ces_file2, ces_file3, ctp, ctph, mn, va, hhs]
-
-    fnames = [
-        "rtlive",
-        "testandtrace",
-        "covidexitstrategy",
-        "covidexitstrategy",
-        "covidexitstrategy",
-        "covidtrackproj",
-        "covidtrackproj",
-        "MinnesotaCountyTestData",
-        "VirginiaHealthDistrictTestData",
-        ["hhs_table1", "hhs_table2", "hhs_table3"]
-    ]
-
-    fpaths = [
-        "./rt_live",
-        "./test_trace",
-        "./covid_exit_strategy_testing",
-        "./covid_exit_strategy_healthcare",
-        "./covid_exit_strategy_spread",
-        "./covid_tracking_proj_race",
-        "./covid_tracking_proj_hist",
-        "./minnesota",
-        "./virginia",
-        ["./hhs_icu", "./hhs_icu", "./hhs_icu"]
-    ]
-
-    dayofweek = date.today()
-    dayofweek = calendar.day_name[dayofweek.weekday()]
-
-
-    for i in range(len(files)):
-
-        if (files[i][1] == "minnesota") and (dayofweek != "Thursday"):
-            print(f"Today is not Thursday. Skipping Minnesota weekly update.")
-            continue
-        if (files[i][1] == "covid_tracking_proj_race") and (dayofweek != "Monday" and dayofweek != "Thursday"):
-            print(f"Today is not Monday or Thursday. Skipping Covid Tracking Proj Race data update.")
-            continue
-        print(f"\n****START*****\n")
-        verify = False
-        counter = 1
-        while verify is False:
-            print(f"~~ Attempt {counter} ~~\n")
-            counter = counter + 1
-            file = FileFetch(params_file=files[i])
-            df = file.fetch()
-            if isinstance(df, list):
-                j = 0
-                fns = fnames[i]
-                fps = fpaths[i]
-                for table in df:
-                    verify = file.save(table, fname=fns[j], fpath=fps[j])
-                    j += 1
-                verify = True
-            else:
-                verify = file.save(df, fname=fnames[i], fpath=fpaths[i])
-                if (counter == 6) and (verify == False):
-                    print("Additional attempts also failed.  Giving up.\n")
-                    verify = True
-        print(f"\n****END*****\n")
-
-    vdh.clean_vdh("./virginia/*.csv")
+    # """
+    # ########################################################
+    # # Daily upload code comment out above test code to run #
+    # ########################################################
+    # """
+    #
+    # rt_file = ["../url_filefetch.yml", "rt_live"]
+    # tat_file = ["../url_filefetch.yml", "test_and_trace"]
+    # ces_file = ["../url_filefetch.yml", "covid_exit_strat_testing"]
+    # ces_file2 = ["../url_filefetch.yml", "covid_exit_strat_healthcare"]
+    # ces_file3 = ["../url_filefetch.yml", "covid_exit_strat_spread"]
+    # ctp = ["../url_filefetch.yml", "covid_tracking_proj_race"]
+    # ctph = ["../url_filefetch.yml", "covid_tracking_proj_hist"]
+    # mn = ["../url_filefetch.yml", "minnesota"]
+    # va = ["../url_filefetch.yml", "virginia"]
+    # hhs = ["../url_filefetch.yml", "hhs_icu"]
+    # poli = ["../url_filefetch.yml", "COVID19StatePolicy"]
+    # kff = ["../url_filefetch.yml", "kff"]
+    #
+    # files = [rt_file, tat_file, ces_file, ces_file2, ces_file3, ctp, ctph, mn,
+    #         va, hhs, poli, kff]
+    #
+    # fnames = [
+    #     "rtlive",
+    #     "testandtrace",
+    #     "covidexitstrategy",
+    #     "covidexitstrategy",
+    #     "covidexitstrategy",
+    #     "covidtrackproj",
+    #     "covidtrackproj",
+    #     "MinnesotaCountyTestData",
+    #     "VirginiaHealthDistrictTestData",
+    #     ["hhs_table1", "hhs_table2", "hhs_table3"],
+    #     "StatePolicy",
+    #     "kff"
+    # ]
+    #
+    # fpaths = [
+    #     "./rt_live",
+    #     "./test_trace",
+    #     "./covid_exit_strategy_testing",
+    #     "./covid_exit_strategy_healthcare",
+    #     "./covid_exit_strategy_spread",
+    #     "./covid_tracking_proj_race",
+    #     "./covid_tracking_proj_hist",
+    #     "./minnesota",
+    #     "./virginia",
+    #     ["./hhs_icu", "./hhs_icu", "./hhs_icu"],
+    #     "./state_policy",
+    #     "./kff"
+    # ]
+    #
+    # dayofweek = date.today()
+    # dayofweek = calendar.day_name[dayofweek.weekday()]
+    #
+    #
+    # for i in range(len(files)):
+    #
+    #     print(f"\n****START*****\n")
+    #
+    #     if (files[i][1] == "minnesota") and (dayofweek != "Thursday"):
+    #         print(f"\t> Today is not Thursday. Skipping Minnesota weekly update.")
+    #         print(f"\n****END*****\n")
+    #         continue
+    #     if (files[i][1] == "covid_tracking_proj_race") and (dayofweek != "Monday" and dayofweek != "Thursday"):
+    #         print(f"\t> Today is not Monday or Thursday. Skipping Covid Tracking Proj Race data update.")
+    #         print(f"\n****END*****\n")
+    #         continue
+    #     if (files[i][1] == "COVID19StatePolicy") and (dayofweek != "Tuesday" and dayofweek != "Friday"):
+    #         print(f"\t> Today is not Tuesday or Friday. Skipping State Policy data update.")
+    #         print(f"\n****END*****\n")
+    #         continue
+    #
+    #     verify = False
+    #     counter = 1
+    #     while verify is False:
+    #         print(f"~~ Attempt {counter}: {files[i][1]}~~\n")
+    #         counter = counter + 1
+    #         file = FileFetch(params_file=files[i])
+    #         df = file.fetch()
+    #         if isinstance(df, list):
+    #             j = 0
+    #             fns = fnames[i]
+    #             fps = fpaths[i]
+    #             for table in df:
+    #                 verify = file.save(table, fname=fns[j], fpath=fps[j])
+    #                 j += 1
+    #             verify = True
+    #         else:
+    #             verify = file.save(df, fname=fnames[i], fpath=fpaths[i])
+    #             if (counter == 6) and (verify == False):
+    #                 print("Additional attempts also failed.  Giving up.\n")
+    #                 verify = True
+    #     print(f"\n****END*****\n")
+    #
+    # print("Running additional processing scripts now...\n")
+    # vdh.clean_vdh("./virginia/*.csv")
