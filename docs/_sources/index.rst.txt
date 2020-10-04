@@ -1,0 +1,36 @@
+.. filefetch documentation master file, created by
+   sphinx-quickstart on Thu Sep 24 18:35:53 2020.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to filefetch's documentation!
+=====================================
+
+Introduction:
+
+The filefetch package allows a user to retrieve publicly available datasets by
+providing a simple yaml file structured as such:
+
+.. image:: _static/sampleyaml.png
+  :width: 700
+  :alt: a sample yaml file
+
+The package works with APIs, html streams, and downloadable file links.
+Information on the different available retrieval methods, allowable file types,
+formatting the yaml, and running code using filefetch is provided in the
+contents below.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   modules
+   examples
+   sample-yaml
+
+
+.. toctree::
+  :caption: Indices:
+
+  genindex
+  py-modindex

@@ -1,0 +1,221 @@
+YAML files used by FileFetch
+-----------------------------
+
+|
+
+.. note::
+
+    Information below pertains to the filefetch package v. 0.0.1 (October 2020)
+
+|
+
+FileFetch uses two different yaml files for providing the required parameters:
+ * :ref:`pdf_formatter.yml <pdf-formatter-label>`: required only when fetching PDFs.
+ * :ref:`params yaml file <params-yaml-label>`: used to provide parameters to FileFetch.
+
+|
+
+.. _pdf-formatter-label:
+
+pdf_formatter.yml
+#################
+
+The file pdf_formatter.yml is only required when the file to be fetched is a PDF file.
+
+.. warning::
+
+   pdf_formatter.yml must be saved in your run directory to fetch a pdf.
+
+When fetching a pdf, FileFetch assumes there is one or more tables that can be parsed from the pdf using the python package camelot and a specialized function(s) provided by the user.
+
+
+Therefore, there are several steps for getting a PDF using FileFetch:
+ * `pdf_formatter.yml` needs to be saved in the directory from which you run your code.
+ * A **specialized function** for processing, formatting, and storing the data in a pd.DataFrame needs to be added to `utils.pdfx.py`.
+ * A **caller function** to call the specialized function is also required. The caller function is referenced in the `pdf_formatter.yml` and tells the FileFetch code which specialized function to access.
+
+Sample pdf_formatter.yml
+*************************
+
+As of version 0.0.1, FileFetch comes with one specialized function for extracting a PDF table with COVID-19 data from the Minnesota Department of Health.  The sample pdf_formatter.yml below is for this case.
+
+General format is
+
+**url_key**:
+  **description**: information for user on what the url points to
+
+  **notes**: (optional) any additional notes to help the end-user
+
+  **function**: string to call **caller function** which in turn will call the **specialized function** for given pdf table(s)
+
+For the Minnesota Department of Heath, this looks like:
+
+.. image:: _static/pdfformatter.png
+  :width: 700
+  :alt: pdf_formatter example format
+
+The **url_key** (e.g., www.health.state.mn.us/diseases/coronavirus/stats/index.html) should match the file url given as a parameter to FileFetch when you initialize (see information on creating a :ref:`params yaml <params-yaml-label>` for more on this).
+
+The **function** should return a pandas DataFrame, therefore the format of the string provided to **function** should breakdown in to three parts:
+ * variable name which will store the DataFrame
+ * = sign
+ * caller function (with correct arguments)
+
+.. warning::
+
+   it is the user's responsibility to add the **caller function** and **specialized function** to `utils.pdfx.py`.
+
+Example caller function
+************************
+
+The **caller function** is simple and only serves to allow the `utils.pdfx.py` master function `parse_pdf()` to execute the **specialized function** without knowing the name of the user's function ahead of time.
+
+
+.. code-block:: python
+
+   call_my_pdf_function(pdf_name, pg_nums):
+       name = str(pdf_name) # name of pdf
+       pgs = str(pg_nums) # page numbers with tables to parse
+       df = my_pdf_function(name,pgs)
+       return df
+
+Example specialized function
+*****************************
+
+The **specialized function** may be simple or complex depending on the format of the table the user needs to extract from the PDF.
+
+.. code-block:: python
+
+   my_pdf_function(pdf_name, pgs):
+      # use Python package camelot to parse tables
+      tables = camelot.read_pdf(pdf_name, pages=pgs)
+      datatable = pd.DataFrame()
+
+      for t in tables:
+           whitespace = t.parsing_report["whitespace"]
+           if whitespace < 20:
+               ws = whitespace
+               datatable = t
+
+      dframe = datatable.df
+      return dframe
+
+.. tip::
+
+   See this `quickstart guide <https://camelot-py.readthedocs.io/en/master/user/quickstart.html>`_ for information on using Camelot. There is also this `discussion <http://theautomatic.net/2019/05/24/3-ways-to-scrape-tables-from-pdfs-with-python/>`_.
+
+.. _params-yaml-label:
+
+params yaml file
+#################
+
+Using a yaml is one way to pass parameters to FileFetch. This is done in the following way:
+
+.. code-block:: python
+
+   yaml_file = ["url_list.yml", "unique_header_key"]
+   file = FileFetch(params_file=yaml_file)
+
+The above example assumes your yaml file is named **url_list.yml** and is
+saved locally in your run directory. You will need to provide the full
+path if the yaml is saved elsewhere.
+More details on initialization can be found :ref:`here <ff-example-label>`.
+
+The **unique_header_key** is taken from url_list.yml and is discussed more in the next section.
+
+
+A `real-world example <./examples.html>`_ using a params yaml is provided at the link.
+
+
+Sample params yaml
+******************
+
+General format is
+
+**unique header key**:
+    **description**: information on data being retrieved
+
+    **website**: (optional) parent website (for reference only)
+
+    **file_url**: url to file
+
+    **file_type**: e.g., csv, txt, html-stream
+
+    **key_phrase**: use for html-stream, findlink(s), csv-git-scan (leave blank otherwise)
+
+As of FileFecth version 0.0.1, there are 5 **file_type** options.  More information is `here <./filefetch.html>`_.
+
+**file_type** options:
+ * `csv`: Fetch a standard csv file.
+ * `html-stream`: Largely used with DataWrapper where octet-stream;charset=utf-8
+ * `findlink`: Search html for file link (retrieves csv, xlsx or pdf files)
+ * `findlinks`: Same as findlink for multiple files on same page
+ * `csv-git-scan`: Scan list of csvs on GitHub and download most recent
+
+Examples for each file type are provided below.
+
+.. tip::
+
+    Multiple fetch params can be stored in the same yaml.  FileFetch uses the **unique_header_key** to identify which file block to read-in.
+
+Example csv fetch
+*******************
+.. image:: _static/csvyml.png
+  :width: 500
+  :alt: csv file type example format
+
+**key_phrase** is not used with csv **file_type**.  Leave it blank.
+
+Example html-stream fetch
+**************************
+.. image:: _static/htmlstreamyml.png
+  :width: 620
+  :alt: html stream file type example format
+
+**key_phrase** specifies the this is `data:application/octet-stream;charset=utf-8,`
+When dealing with html-stream **file_type** copy and paste the phrase exactly as
+shown.
+
+Example findlink fetch
+**************************
+.. image:: _static/findlinkyml.png
+  :width: 700
+  :alt: find link file type example format
+
+**key_phrase** is a dict that specifies the html tag and tag attributes you are searching for
+to identify the link.
+
+The dict keys are:
+ * `tag`: main css tag to search for
+ * `search`: additional tag and it's attribute
+ * `ftype`: (pdf, csv, xlsx) gives the file type
+ * `nested`: (yes or no) indicates whether the `tag` and `search` keys identify the link directly or if you need to search for the link nested under them.
+
+The Python package BeautifulSoup
+is used to find the link. References for more help understanding the `tag` and `search` values:
+`[1] <https://stackoverflow.com/questions/47104192/beautifulsoup-extracting-link-text-and-title-within-child-div>`_
+`[2] <https://www.crummy.com/software/BeautifulSoup/bs4/doc/#attributes>`_
+`[3] <https://www.crummy.com/software/BeautifulSoup/bs4/doc/#quick-start>`_.
+
+Example findlinks fetch
+**************************
+.. image:: _static/findlinksyml.png
+  :width: 750
+  :alt: find links file type example format
+
+See findlink example for explanation of **key_phrase**.
+
+Example csv-git-scan fetch
+***************************
+.. image:: _static/csvgitscanyml.png
+  :width: 700
+  :alt: csv git scan file type example format
+
+**key_phrase** is a dict identifying a pattern to search for to identify the latest file.
+The example above assumes the files contain the year-month-day in the file name. The file date is
+extracted from the file name using regex and then compared to the date provided by the user in `last-date`. If
+a file's date is less recent then the `last-date` provided, it is not retrieved.
+
+The dict keys are:
+ * `pattern`: regex pattern to extract date from file name. This date is compared to the `last-date`.
+ * `last-date`: most recent date you have previously downloaded.

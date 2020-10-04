@@ -1,0 +1,694 @@
+Use Examples
+======================
+
+Assumptions
+-------------
+
+Assumptions used in developing the examples below:
+
+1. User created and saved a yaml file in the same directory as that from which the
+   code is run. (See  `yaml
+   files <./sample-yaml.html>`__ for more information on use with filefetch.)
+2. The yaml file created by the user is named: *url_filefetch.yml*
+3. The filefetch package has not been installed (`see
+   PyPA <https://packaging.python.org/tutorials/>`__ or this
+   `stackoverflow
+   answer <https://stackoverflow.com/questions/1471994/what-is-setup-py>`__
+   for information on package installation) and so is added manually to *sys.path*.
+
+Details
+-------
+
+The code below shows how to fetch data from several sites. This covers:
+
+-  Accessing an API (format: csv)
+-  Extracting a file from a url link (format: pdf)
+-  Extracting multiple files from a single webpage (format: csv)
+
+As of filefetch version 0.0.1, xlsx file links can also be retrieved.
+Additional formats (e.g., json, xml) can be included by adding methods
+to the FileFetch Class (additional details
+`here <./filefetch.html#ff-note-label>`__).
+
+The `parameter details <./sample-yaml.html#yaml-files-used-by-filefetch>`__ required by FileFetch have been
+given in the user-provided :ref:`params yaml file <params-yaml-label>` named *url_filefetch.yml*.
+
+Sample code
+-----------
+
+**Manually add filefetch package to sys.path**
+
+.. note::
+
+  you will need to update the paths in the code block below to correctly point to where you have the filefetch package saved.
+
+If using any helper packages or self-written modules that are not installed, you can add
+those to `sys.path` in the same manner.
+
+.. code:: python
+
+    import sys
+    from os import scandir
+
+    # add filefetch package to sys.path
+
+    master = "/Change-to-location-you-saved-the-package/filefetch_master"
+    excludes = ["__pycache__","history","doc","setup",".ipynb_checkpoints"] # list of subdirs to ignore
+    dirls = [f.path for f in scandir(master) if f.is_dir()]
+    includes = [d for d in dirls if not any(x in d for x in excludes)]
+    for d in includes:
+        sys.path.insert(0,d)
+
+    # add helper packages and modules to sys.path
+
+    modules = "/Change-to-location-you-saved-any-helper-packages/Modules"
+    excludes = ["__pycache__",".ipynb_checkpoints"] # list of subdirs to ignore
+    dirls = [f.path for f in scandir(modules) if f.is_dir()]
+    includes = [d for d in dirls if not any(x in d for x in excludes)]
+    for d in includes:
+        sys.path.insert(0,d)
+    sys.path.insert(0,modules)
+
+    modules = "/Change-to-location-you-saved-any-additional-modules/covid"
+    excludes = ["__pycache__",".ipynb_checkpoints"] # list of subdirs to ignore
+    dirls = [f.path for f in scandir(modules) if f.is_dir()]
+    includes = [d for d in dirls if not any(x in d for x in excludes)]
+    for d in includes:
+        sys.path.insert(0,d)
+    sys.path.insert(0,modules)
+
+**Import Python packages**
+
+Now import your added packages and any installed packages that you need.
+
+Note vdh is an in-house helper module to process Virginia Department of
+Health COVID data.
+
+.. code:: python
+
+    from filefetch.FileFetch import FileFetch
+    import vdh
+
+    import pandas as pd
+    from datetime import date
+    import calendar
+
+**Setup the params for FileFetch**
+
+FileFetch is initialized as
+
+.. code:: python
+
+    FileFetch(params_file=MY_PARAMS_LIST)
+
+where MY_PARAMS_LIST is a list structured as such:
+
+  - The first value in the list specifies the location of your `params yaml <./sample-yaml.html#params-yaml-file>`_ file.
+  - The second value gives the `unique header key <./sample-yaml.html#sample-params-yaml>`__ in the yaml that references the desired dataset being fetched.
+
+In the example below, the params yaml is called `url_filefetch.yml` and is saved in the directory from which you are running the code.
+The unique header keys (`virginia`, `minnesota`, and `hhs_icu`), defined in `url_filefetch.yml`, are for COVID-19 health datasets from Virginia,
+Minnesota, and the U.S. Department of Health and Human Services (HHS).
+
+.. code:: python
+
+    va = ["url_filefetch.yml", "virginia"]
+    mn = ["url_filefetch.yml", "minnesota"]
+    hhs = ["url_filefetch.yml", "hhs_icu"]
+
+**Define file names to which retrieved dataset will be saved.**
+
+*fname_hhs* is a list since 3 files will be fetched from the same
+website.
+
+.. code:: python
+
+    fname_va = "VirginiaTestData"
+    fname_mn = "MinnesotaTestData"
+    fname_hhs = ["HospitalizationData_1", "HospitalizationData_2", "HospitalizationData_3"]
+
+The code below does the following:
+
+-  accesses COVID-19 test data from the `Virginia Department of
+   Health <https://data.virginia.gov/Government/VDH-COVID-19-PublicUseDataset-Tests_by-LabReportDa/3u5k-c2gr>`__
+-  saves it to a csv
+-  reads back in the csv to process the data for use
+
+.. code:: python
+
+    file = FileFetch(params_file=va)
+    df = file.fetch()
+    verify = file.save(df, fname=fname_va)
+    print(f"File successfully saved?: {verify}")
+    vdh.clean_vdh("./*.csv")
+
+
+**OUTPUT:**
+
+
+
+.. parsed-literal::
+
+
+    	url set to 'https://data.virginia.gov/resource/3u5k-c2gr.csv'
+    	file_type is 'csv'
+    	Fetching file...
+
+    	Data fetched! Saved to DataFrame.
+
+    	File saved to:	./VirginiaTestData_2020-10-02.csv
+
+    	File successfully saved?: True
+
+    	Processed data saved to ./county/VirginiaCountyTestData_2020-10-02.csv
+
+|
+
+.. code:: python
+
+    df = pd.read_csv("./county/VirginiaCountyTestData_2020-10-02.csv")
+    df.head()
+
+
+**OUTPUT:** (processed data)
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>lab_report_date</th>
+          <th>Positivity_pcr_7day</th>
+          <th>CityCounty</th>
+          <th>CountyFIPS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>2020-09-02</td>
+          <td>0.03645</td>
+          <td>Alexandria</td>
+          <td>51510</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>2020-09-02</td>
+          <td>0.07865</td>
+          <td>Amelia</td>
+          <td>51007</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>2020-09-02</td>
+          <td>0.07865</td>
+          <td>Buckingham</td>
+          <td>51029</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>2020-09-02</td>
+          <td>0.07865</td>
+          <td>Charlotte</td>
+          <td>51037</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>2020-09-02</td>
+          <td>0.07865</td>
+          <td>Cumberland</td>
+          <td>51049</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+The code below does the following:
+
+-  finds a link to a pdf report with COVID-19 data provided by the
+   `Minnesota Department of
+   Health <https://www.health.state.mn.us/diseases/coronavirus/stats/index.html>`__
+-  downloads the pdf
+-  extracts a table from the pdf into a pandas DataFrame
+
+This requires a file called
+`pdf_formatter.yml <sample-yaml.html#pdf-formatter-yml>`__ be
+saved in your run directory. Information on creating the file can be
+found at the above link.
+
+.. code:: python
+
+    file = FileFetch(params_file=mn)
+    df = file.fetch()
+    df.head()
+
+**OUTPUT:**
+
+.. parsed-literal::
+
+
+    	url set to 'https://www.health.state.mn.us/diseases/coronavirus/stats/index.html'
+    	file_type is 'findlink'
+    	Fetching link...
+
+    	Downloaded pdf and saved as ./health-state-mn-us_covidweekly40.pdf
+
+    	Data fetched! Saved to DataFrame.
+
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>County</th>
+          <th>Positive</th>
+          <th>fips</th>
+          <th>state</th>
+          <th>stateiso</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>Aitkin</td>
+          <td>2.9</td>
+          <td>27001</td>
+          <td>Minnesota</td>
+          <td>MN</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>Anoka</td>
+          <td>6.3</td>
+          <td>27003</td>
+          <td>Minnesota</td>
+          <td>MN</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>Becker</td>
+          <td>2.1</td>
+          <td>27005</td>
+          <td>Minnesota</td>
+          <td>MN</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>Beltrami</td>
+          <td>4.0</td>
+          <td>27007</td>
+          <td>Minnesota</td>
+          <td>MN</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>Benton</td>
+          <td>5.3</td>
+          <td>27009</td>
+          <td>Minnesota</td>
+          <td>MN</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+The cell below:
+
+-  finds links to 3 csv files containing hospitalization data from
+   `HHS <https://healthdata.gov/dataset/covid-19-estimated-patient-impact-and-hospital-capacity-state>`__
+-  stores the data from each link in a pandas DataFrame
+-  returns all the DataFrames as a list
+
+.. code:: python
+
+    file = FileFetch(params_file=hhs)
+    df_list = file.fetch()
+    print(f"{len(df_list)} files were fetched")
+
+**OUTPUT:**
+
+.. parsed-literal::
+
+
+    	url set to 'https://healthdata.gov/dataset/covid-19-estimated-patient-impact-and-hospital-capacity-state'
+    	file_type is 'findlinks'
+    	Fetching links...
+
+    	Searched for multiple links and found the following:
+    	https://healthdata.gov/sites/default/files/estimated_inpatient_all_20201001_1424.csv
+    	https://healthdata.gov/sites/default/files/estimated_inpatient_covid_20201001_1424.csv
+    	https://healthdata.gov/sites/default/files/estimated_icu_20201001_1424.csv
+
+    	3 files were fetched!
+
+|
+
+.. code:: python
+
+    print(f"\nShowing {fname_hhs[0]}")
+    df_list[0].head()
+
+**OUTPUT:**
+
+    Showing HospitalizationData_1
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>state</th>
+          <th>collection_date</th>
+          <th>Inpatient Beds Occupied Estimated</th>
+          <th>Count LL</th>
+          <th>Count UL</th>
+          <th>Percentage of Inpatient Beds Occupied Estimated</th>
+          <th>Percentage LL</th>
+          <th>Percentage UL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>CW</td>
+          <td>2020-08-30</td>
+          <td>460,842</td>
+          <td>458,849</td>
+          <td>462,835</td>
+          <td>63.64</td>
+          <td>62.86</td>
+          <td>64.43</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>CW</td>
+          <td>2020-08-31</td>
+          <td>466,736</td>
+          <td>465,034</td>
+          <td>468,438</td>
+          <td>64.10</td>
+          <td>63.49</td>
+          <td>64.72</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>CW</td>
+          <td>2020-09-01</td>
+          <td>486,997</td>
+          <td>484,939</td>
+          <td>489,056</td>
+          <td>66.48</td>
+          <td>65.76</td>
+          <td>67.20</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>CW</td>
+          <td>2020-09-02</td>
+          <td>496,761</td>
+          <td>494,836</td>
+          <td>498,686</td>
+          <td>67.48</td>
+          <td>66.88</td>
+          <td>68.07</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>CW</td>
+          <td>2020-09-03</td>
+          <td>494,730</td>
+          <td>492,922</td>
+          <td>496,538</td>
+          <td>67.51</td>
+          <td>66.95</td>
+          <td>68.07</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+.. code:: python
+
+    print(f"\nShowing {fname_hhs[1]}")
+    df_list[1].head()
+
+
+**OUTPUT:**
+
+    Showing HospitalizationData_2
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>state</th>
+          <th>collection_date</th>
+          <th>Inpatient Beds Occupied by COVID-19 Patients Estimated</th>
+          <th>Count LL</th>
+          <th>Count UL</th>
+          <th>Percentage of Inpatient Beds Occupied by COVID-19 Patients Estimated</th>
+          <th>Percentage LL</th>
+          <th>Percentage UL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>CW</td>
+          <td>2020-08-30</td>
+          <td>42,767</td>
+          <td>42,263</td>
+          <td>43,271</td>
+          <td>5.84</td>
+          <td>5.36</td>
+          <td>6.32</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>CW</td>
+          <td>2020-08-31</td>
+          <td>43,219</td>
+          <td>42,762</td>
+          <td>43,677</td>
+          <td>5.87</td>
+          <td>5.47</td>
+          <td>6.28</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>CW</td>
+          <td>2020-09-01</td>
+          <td>44,580</td>
+          <td>44,068</td>
+          <td>45,093</td>
+          <td>6.03</td>
+          <td>5.54</td>
+          <td>6.51</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>CW</td>
+          <td>2020-09-02</td>
+          <td>43,652</td>
+          <td>43,330</td>
+          <td>43,974</td>
+          <td>5.87</td>
+          <td>5.73</td>
+          <td>6.00</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>CW</td>
+          <td>2020-09-03</td>
+          <td>42,840</td>
+          <td>42,343</td>
+          <td>43,338</td>
+          <td>5.79</td>
+          <td>5.21</td>
+          <td>6.36</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+
+
+.. code:: python
+
+    print(f"\nShowing {fname_hhs[2]}")
+    df_list[2].head()
+
+
+**OUTPUT:**
+
+    Showing HospitalizationData_3
+
+
+
+
+.. raw:: html
+
+    <div>
+    <style scoped>
+        .dataframe tbody tr th:only-of-type {
+            vertical-align: middle;
+        }
+
+        .dataframe tbody tr th {
+            vertical-align: top;
+        }
+
+        .dataframe thead th {
+            text-align: right;
+        }
+    </style>
+    <table border="1" class="dataframe">
+      <thead>
+        <tr style="text-align: right;">
+          <th></th>
+          <th>state</th>
+          <th>collection_date</th>
+          <th>ICU Beds Occupied Estimated</th>
+          <th>Count LL</th>
+          <th>Count UL</th>
+          <th>Percentage of ICU Beds Occupied Estimated</th>
+          <th>Percentage LL</th>
+          <th>Percentage UL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>0</th>
+          <td>CW</td>
+          <td>2020-08-30</td>
+          <td>68,055</td>
+          <td>67,727</td>
+          <td>68,383</td>
+          <td>65.17</td>
+          <td>64.15</td>
+          <td>66.20</td>
+        </tr>
+        <tr>
+          <th>1</th>
+          <td>CW</td>
+          <td>2020-08-31</td>
+          <td>67,938</td>
+          <td>67,655</td>
+          <td>68,222</td>
+          <td>64.97</td>
+          <td>64.10</td>
+          <td>65.84</td>
+        </tr>
+        <tr>
+          <th>2</th>
+          <td>CW</td>
+          <td>2020-09-01</td>
+          <td>70,812</td>
+          <td>70,567</td>
+          <td>71,057</td>
+          <td>67.53</td>
+          <td>66.76</td>
+          <td>68.29</td>
+        </tr>
+        <tr>
+          <th>3</th>
+          <td>CW</td>
+          <td>2020-09-02</td>
+          <td>71,318</td>
+          <td>71,168</td>
+          <td>71,469</td>
+          <td>67.99</td>
+          <td>67.62</td>
+          <td>68.37</td>
+        </tr>
+        <tr>
+          <th>4</th>
+          <td>CW</td>
+          <td>2020-09-03</td>
+          <td>71,076</td>
+          <td>70,919</td>
+          <td>71,234</td>
+          <td>67.59</td>
+          <td>67.20</td>
+          <td>67.97</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>

@@ -1,0 +1,18 @@
+dataset_1:
+    description: Example downloading multiple files from one url
+    website: https://example_data.com/
+    file_url: https://example_data.com/dataset/example-data
+    file_type: findlinks
+    key_phrase: {"tag":"ul","search":{"class":"resource-list"},"ftype":"csv","nested":"yes"}
+dataset_2:
+    description: Example downloading a pdf
+    website: optional; may leave blank
+    file_url: https://www.another.example.us/index.html
+    file_type: findlink
+    key_phrase: {"tag":"div","search":{"class":"main"},"ftype":"pdf","nested":"yes"}
+dataset_3:
+  description: An example where file_url uses API
+  website: https://www.somesite.gov/data/
+  file_url: https://data.somesite.gov/resource/3u5k-c2gr.csv
+  file_type: csv
+  key_phrase:

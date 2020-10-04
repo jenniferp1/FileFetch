@@ -1,0 +1,79 @@
+Package Contents
+========================
+
+.. currentmodule:: filefetch
+
+FileFetch Module
+--------------------
+
+.. automodule:: FileFetch
+
+FileFetch Class
+----------------
+
+  .. autoclass:: FileFetch.FileFetch
+
+FileFetch Methods
+------------------
+
+  .. automethod:: FileFetch.FileFetch.download_pdf
+
+  .. automethod:: FileFetch.FileFetch.fetch
+
+  .. automethod:: FileFetch.FileFetch.fetch_csv
+
+  .. automethod:: FileFetch.FileFetch.fetch_csv_git_scan
+
+  .. automethod:: FileFetch.FileFetch.fetch_csv_stream
+
+  .. automethod:: FileFetch.FileFetch.fetch_html_stream
+
+  .. automethod:: FileFetch.FileFetch.fetch_link
+
+  .. automethod:: FileFetch.FileFetch.fetch_links
+
+  .. automethod:: FileFetch.FileFetch.get_description
+
+  .. automethod:: FileFetch.FileFetch.get_webref
+
+  .. automethod:: FileFetch.FileFetch.link_to_df
+
+  .. automethod:: FileFetch.FileFetch.save
+
+
+_initialize Module
+----------------------
+
+.. automodule:: _initialize
+
+_initialize Class
+------------------
+
+.. autoclass:: _initialize.InitializeCheck
+
+_initialize Methods
+---------------------
+
+.. automethod:: _initialize.InitializeCheck.init_check
+
+_initialize Functions
+----------------------
+
+.. autofunction:: _initialize.allowed_files
+
+_help Module
+-----------------
+
+.. automodule:: _help
+
+_help Class
+------------
+
+.. autoclass:: _help.Helper
+
+_help Methods
+---------------
+
+.. automethod:: _help.Helper.file_info
+
+.. automethod:: _help.Helper.help_opts

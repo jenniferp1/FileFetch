@@ -1,0 +1,1172 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FileFetch &#8212; filefetch 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/fontcolor.css" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+
+    
+    
+     
+        <script src="../_static/jquery.cookie.js"></script>
+    
+
+    
+     
+        <script src="../_static/cloud.base.js"></script>
+    
+
+    
+     
+        <script src="../_static/cloud.js"></script>
+    
+
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+    <div class="relbar-top">
+        
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FileFetch</a></li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for FileFetch</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Retrieve file or document from a given url.</span>
+
+<span class="sd">When given a set of parameters or yaml file that contain one or more urls,</span>
+<span class="sd">will navigate to the url and retrieve a file. File may be fetched using one of</span>
+<span class="sd">several methods.</span>
+<span class="sd">See :ref:`file_list &lt;ff-attribute-label&gt;` variable for available methods.</span>
+<span class="sd">Retrieved file contents are saved to a pd.DataFrame with option to export to</span>
+<span class="sd">a csv.</span>
+
+<span class="sd">Classes:</span>
+<span class="sd">    :class:`FileFetch.FileFetch` - Save data from a given url in a pd.DataFrame or csv</span>
+
+<span class="sd">    :class:`_help.Helper` - Print user help information for FileFetch</span>
+
+<span class="sd">    :class:`_initialize.InitializeCheck` - Validate user input to FileFetch</span>
+
+<span class="sd">Key Variables:</span>
+<span class="sd">    :ref:`file_list &lt;ff-attribute-label&gt;` - (list) available file retrieval</span>
+<span class="sd">    method key words (e.g., `csv`, `html-stream`, `findlink`)</span>
+
+<span class="sd">    :ref:`file_desc &lt;ff-attribute-label&gt;` - (dict) method defintion and url</span>
+<span class="sd">    example for each key word listed in file_list</span>
+
+<span class="sd">See information on retrieval methods using</span>
+
+<span class="sd">&gt;&gt;&gt; python FileFetch.py file_list</span>
+<span class="sd">Output:</span>
+<span class="sd">    1. csv: A standard csv file. See &#39;csv-git-scan&#39;.</span>
+<span class="sd">            Example: https://www.site.com/myfile.csv</span>
+<span class="sd">    2. html-stream: Largely used with DataWrapper where octet-stream;charset=utf-8</span>
+<span class="sd">            Example: https://datawrapper.dwcdn.net/awNod/4/</span>
+<span class="sd">    3. findlink: For searching html for link to file to download - can retrieve csv, xlsx, or pdf files</span>
+<span class="sd">            Example: https://www.example.com/data/index.html</span>
+<span class="sd">    4. findlinks: Same as findlink for multiple files on same page</span>
+<span class="sd">    5. csv-git-scan: For scanning list of csv files on GitHub and downloading the most recent one. See &#39;csv&#39;.</span>
+<span class="sd">            Example: https://github.com/data/tree/master/ListOfFiles</span>
+
+<span class="sd">Input Files:</span>
+<span class="sd">    :ref:`params yaml &lt;ff-note-label1&gt;` - url and retrieval method for FileFetch</span>
+
+<span class="sd">    :ref:`pdf_formatter.yml &lt;ff-note-label2&gt;` - information for extracting pdf</span>
+<span class="sd">    data (must exist in launch directory to retrieve pdf)</span>
+
+<span class="sd">.. _FileFetch-label:</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">############################################</span>
+<span class="sd"># Set up paths to Modules &amp; add to sys.path</span>
+<span class="sd">############################################</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">scandir</span>
+<span class="n">modules</span> <span class="o">=</span> <span class="s2">&quot;/home/jennifp3/Documents/Python_scripts/Modules&quot;</span>
+<span class="n">excludes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__pycache__&quot;</span><span class="p">,</span><span class="s2">&quot;.ipynb_checkpoints&quot;</span><span class="p">]</span> <span class="c1"># list of subdirs to ignore</span>
+<span class="n">dirls</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">scandir</span><span class="p">(</span><span class="n">modules</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+<span class="n">includes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirls</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">excludes</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">includes</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">modules</span><span class="p">)</span>
+
+<span class="c1"># import standard Python packages</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span> <span class="c1">#, datetime</span>
+<span class="kn">import</span> <span class="nn">calendar</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pprint</span>
+
+<span class="c1"># import packages for hitting websites</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="c1"># import pyppdf.patch_pyppeteer</span>
+<span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">AsyncHTMLSession</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">unquote</span>
+
+<span class="c1"># import Mixins</span>
+<span class="kn">import</span> <span class="nn">_initialize</span>  <span class="c1"># holds initialization-checking methods</span>
+<span class="kn">import</span> <span class="nn">_help</span>    <span class="c1"># holds methods for printing help information</span>
+
+<span class="c1"># import other homegrown modules</span>
+<span class="kn">from</span> <span class="nn">utils.readin</span> <span class="kn">import</span> <span class="n">checkdir</span><span class="p">,</span> <span class="n">get_absolute_path</span>
+<span class="kn">from</span> <span class="nn">utils.readin</span> <span class="kn">import</span> <span class="n">read_yaml</span><span class="p">,</span> <span class="n">unicodify</span><span class="p">,</span> <span class="n">check_last_load</span>
+<span class="kn">from</span> <span class="nn">utils.pdfx</span> <span class="kn">import</span> <span class="n">parse_pdf</span>
+
+
+
+<span class="c1">#######################################################</span>
+<span class="c1"># UPDATE INSTRUCTIONS (if you need to add sources):</span>
+<span class="c1"># To add a fetch file type to class FileFetch:</span>
+<span class="c1"># 1a. self.file_list - a list with allowable file types. Add file type to list.</span>
+<span class="c1"># 1b. self.file_desc - a dictionary with description of allowable file type.</span>
+<span class="c1">#           Add corresponding descrption when add file type to list</span>
+<span class="c1"># 2. fetch() - method to download data; has &#39;if clause&#39; for each file type.</span>
+<span class="c1">#    Add file type to &#39;if clause&#39;</span>
+<span class="c1"># 3. fetch_*() - specific file type method called by fetch().</span>
+<span class="c1">#    Add a new fetch_*() method for retrieving new file type</span>
+<span class="c1">#####################################################</span>
+
+
+<div class="viewcode-block" id="FileFetch"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch">[docs]</a><span class="k">class</span> <span class="nc">FileFetch</span><span class="p">(</span><span class="n">_initialize</span><span class="o">.</span><span class="n">InitializeCheck</span><span class="p">,</span> <span class="n">_help</span><span class="o">.</span><span class="n">Helper</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve data file(s) from a url.</span>
+
+<span class="sd">    Data is saved in a pd.DataFrame and may also</span>
+<span class="sd">    be exported to a csv. There are several retrieval methods, which are</span>
+<span class="sd">    defined in :ref:`file_list &lt;ff-attribute-label&gt;` and</span>
+<span class="sd">    :ref:`file_desc &lt;ff-attribute-label&gt;`.</span>
+<span class="sd">    Typical file type for retrieval is</span>
+<span class="sd">    CSV, but using the findlink(s) option can retrive a PDF or XLSX.</span>
+<span class="sd">    See :ref:`Notes &lt;ff-note-label&gt;` for adding functionality</span>
+<span class="sd">    to include new file sources or retrieval methods.</span>
+
+<span class="sd">    .. _ff-attribute-label:</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    params : dict, optional</span>
+<span class="sd">        Provides url and retrieval option; choose either params or params_file.</span>
+<span class="sd">    params_file : list, optional</span>
+<span class="sd">        Provides url and retrieval option; preferred over using params.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    df : pd.DataFrame</span>
+<span class="sd">        Contains data returned by the file retrieval method</span>
+<span class="sd">        (See :ref:`fetch() &lt;fetch-label&gt;`).</span>
+<span class="sd">    file_list : list</span>
+<span class="sd">        Provides all available file retrieval method key words.</span>
+<span class="sd">    file_desc : dict</span>
+<span class="sd">        Provides method defintion and url example for each key word listed</span>
+<span class="sd">        in file_list</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :class:`_initialize.InitializeCheck`: Mixin class to verify input to FileFecth.</span>
+<span class="sd">    :class:`_help.Helper`: Mixin class to provide help information on FileFetch.</span>
+
+
+<span class="sd">    .. _ff-note-label:</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    **Extending FileFetch capabilities**:</span>
+
+<span class="sd">    * Add fetch method keyword to :ref:`file_list &lt;ff-attribute-label&gt;`.</span>
+<span class="sd">    * Add a corresponding description to :ref:`file_desc &lt;ff-attribute-label&gt;`</span>
+<span class="sd">      for method added to file_list</span>
+<span class="sd">    * Update :ref:`fetch() &lt;fetch-label&gt;` to include addition to file_list</span>
+<span class="sd">    * Write a :ref:`fetch_*() submethod &lt;subfetch-label&gt;` that will be called by fetch to do the work</span>
+
+<span class="sd">    .. note:: A mixin class design is used in building FileFetch attributes. :ref:`ff-reference-label` provides more information on mixins.</span>
+
+<span class="sd">    .. role:: hl</span>
+
+<span class="sd">    .. _ff-note-label1:</span>
+
+<span class="sd">    Recommend using yaml files (see :ref:`ff-example-label`) to provide input</span>
+<span class="sd">    to :ref:`FileFetch() &lt;FileFetch-label&gt;`.</span>
+<span class="sd">    Primary :hl:`params yaml` file format is</span>
+
+<span class="sd">    **key_word_header**:</span>
+
+<span class="sd">        **description**: &lt;*summary for data being retrieved*&gt;</span>
+
+<span class="sd">        **website**: &lt;*parent url*&gt;</span>
+
+<span class="sd">        **file_url**: &lt;*url to file (may be same as website)*&gt;</span>
+
+<span class="sd">        **file_type**: &lt;*e.g., csv, html-stream, findlink*&gt;</span>
+
+<span class="sd">        **key_phrase**: &lt;*for html-stream, findlink(s), csv-git-scan; blank otherwise*&gt;</span>
+
+<span class="sd">    .. _ff-note-label2:</span>
+
+<span class="sd">    .. note:: If retrieving a pdf table -- :hl:`pdf_formatter.yml` is required in your run directory. See :ref:`ff-example-label`.</span>
+
+<span class="sd">    The pdf_formatter.yml structure is</span>
+
+<span class="sd">    **url_key_header**:</span>
+
+<span class="sd">      **description**: &lt;*summary for data table being extracted from pdf*&gt;</span>
+
+<span class="sd">      **notes**: (optional) &lt;*any additional notes on use, may leave blank*&gt;</span>
+
+<span class="sd">      **function**: &lt;*name of function to use for extracting and formatting data tables*&gt;</span>
+
+<span class="sd">    .. _ff-reference-label:</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    `Making Python classes more modular using mixins &lt;https://www.residentmar.io/2019/07/07/python-mixins.html&gt;`_</span>
+
+<span class="sd">    `Multiple inheritance and mixin classes in Python &lt;https://www.thedigitalcatonline.com/blog/2020/03/27/mixin-classes-in-python/&gt;`_</span>
+
+<span class="sd">    .. _ff-example-label:</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    For additional help and information on :ref:`FileFetch() &lt;FileFetch-label&gt;`:</span>
+
+<span class="sd">    &gt;&gt;&gt; python FileFetch.py file_list</span>
+<span class="sd">    &gt;&gt;&gt; python FileFetch.py doc</span>
+<span class="sd">    &gt;&gt;&gt; python FileFetch.py help</span>
+
+<span class="sd">    Basic setup and usage:</span>
+
+<span class="sd">    &gt;&gt;&gt; yaml_file = [&quot;url_list.yml&quot;, &quot;header_key&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; file = FileFetch(params_file=yaml_file)</span>
+<span class="sd">    &gt;&gt;&gt; df = file.fetch()</span>
+<span class="sd">    &gt;&gt;&gt; print(df.head())</span>
+<span class="sd">    &gt;&gt;&gt; file.save(df, fname=&quot;mydata&quot;, fpath=&quot;./&quot;)</span>
+
+<span class="sd">    Sample yaml file for primary input to :ref:`FileFetch() &lt;FileFetch-label&gt;`:</span>
+
+<span class="sd">    .. code-block:: text</span>
+
+<span class="sd">        data_in_csv:</span>
+<span class="sd">            description: data stored in a csv</span>
+<span class="sd">            website: https://example.com</span>
+<span class="sd">            file_url: https://example.com/xyz/data.csv</span>
+<span class="sd">            file_type: csv</span>
+<span class="sd">            key_phrase:</span>
+<span class="sd">        data_from_html_stream:</span>
+<span class="sd">            description: data from DataWrapper</span>
+<span class="sd">            website: https://example.com/state-data/</span>
+<span class="sd">            file_url: https://datawrapper.setxs.net/owNad/2/</span>
+<span class="sd">            file_type: html-stream</span>
+<span class="sd">            key_phrase: data:application/octet-stream;charset=utf-8,</span>
+<span class="sd">        finding_data_download_link:</span>
+<span class="sd">            description: programmatically find data file download link in html</span>
+<span class="sd">            website: https://example.com/</span>
+<span class="sd">            file_url: https://example.com/xyz/dashboard</span>
+<span class="sd">            file_type: findlink</span>
+<span class="sd">            key_phrase: {&quot;tag&quot;:&quot;main&quot;,&quot;search&quot;:{&quot;id&quot;:&quot;main&quot;},&quot;ftype&quot;:&quot;csv&quot;,&quot;nested&quot;:&quot;yes&quot;}</span>
+<span class="sd">        searching_list_of_csvs:</span>
+<span class="sd">            description: get most recent csv from a list</span>
+<span class="sd">            website: https://www.example.org/data/issue-brief/state-data/</span>
+<span class="sd">            file_url: https://github.com/MyData/2020-Data/tree/my_master/StateDataActions/</span>
+<span class="sd">            file_type: csv-git-scan</span>
+<span class="sd">            key_phrase: {&quot;pattern&quot;:&quot;\\d{4}-\\d{2}-\\d{2}&quot;, &quot;last_date&quot;:&quot;2020-08-31&quot;}</span>
+
+<span class="sd">    Sample pdf_formatter.yml required for fetching data from PDFs:</span>
+
+<span class="sd">    .. code-block:: text</span>
+
+<span class="sd">        https://www.your_pdf_url/data/xyz/stats/index.html:</span>
+<span class="sd">            description: pdf data table on test results</span>
+<span class="sd">            notes: last function argument is page(s) with data table(s), e.g., 1 or 1,2,3</span>
+<span class="sd">            function: dframe = call_parse_pdf_weekly_report(pdf_name, txt, 7)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="c1"># params is user supplied dictionary: url and file type (e.g., csv, text, html-stream)</span>
+        <span class="c1"># params_file = list: location of yaml &amp; header to grab</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;csv&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;html-stream&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;findlink&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;findlinks&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">,</span>
+        <span class="p">]</span>  <span class="c1"># update with allowed file types as add capability</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_desc</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;csv&quot;</span><span class="p">:</span><span class="s2">&quot;A standard csv file. See &#39;csv-git-scan&#39;.</span><span class="se">\n\</span>
+<span class="s2">            Example: https://www.site.com/myfile.csv</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;html-stream&quot;</span><span class="p">:</span><span class="s2">&quot;Largely used with DataWrapper where octet-stream;charset=utf-8</span><span class="se">\n\</span>
+<span class="s2">            Example: https://datawrapper.dwcdn.net/awNod/4/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;findlink&quot;</span><span class="p">:</span><span class="s2">&quot;For searching html for link to file to download - can retrieve csv, xlsx, or pdf files</span><span class="se">\n\</span>
+<span class="s2">            Example: https://www.example.com/data/index.html</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;findlinks&quot;</span><span class="p">:</span><span class="s2">&quot;Same as findlink for multiple files on same page</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">:</span><span class="s2">&quot;For scanning list of csv files on GitHub and downloading the most recent one. See &#39;csv&#39;.</span><span class="se">\n\</span>
+<span class="s2">            Example: https://github.com/data/tree/master/ListOfFiles</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">}</span> <span class="c1"># update when add to file_list</span>
+
+        <span class="c1"># call mixin InitializeCheck class from _initialize.py to make sure user inputs are valid</span>
+        <span class="c1"># if invalid, returns message letting user know error</span>
+        <span class="c1"># if all okay, prints url and file type to screen as confirmation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_check</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">params_file</span><span class="p">)</span>
+
+        <span class="c1"># print to screen confirmation that initialization worked</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">url set to &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">file type to download is &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">key_phrase is &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="FileFetch.get_description"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.get_description">[docs]</a>    <span class="k">def</span> <span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print user supplied description from yaml.</span>
+
+<span class="sd">        In the params_file yaml, user supplies a description of the dataset.</span>
+<span class="sd">        This method returns the user&#39;s description.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            User-provided description prints to screen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;data description: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No description provided by user&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="FileFetch.get_webref"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.get_webref">[docs]</a>    <span class="k">def</span> <span class="nf">get_webref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print user supplied parent url from yaml.</span>
+
+<span class="sd">        In the params_file yaml, user supplies a parent url if available.</span>
+<span class="sd">        This method returns that reference.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            User-provided parent url prints to screen.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">webref</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reference site url: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">webref</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No reference site provided by user&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch">[docs]</a>    <span class="k">def</span> <span class="nf">fetch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Master method to retrieve data.</span>
+
+<span class="sd">        Based on `file_type` provided to :ref:`FileFetch() &lt;FileFetch-label&gt;`</span>
+<span class="sd">        in `params_file` or `params`,</span>
+<span class="sd">        will call the correct :ref:`fetch sub-method &lt;subfetch-label&gt;`</span>
+<span class="sd">        to process the fetch request.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.</span>
+
+<span class="sd">        .. _ff-filelist-cmd:</span>
+
+<span class="sd">        More information on file_list</span>
+<span class="sd">        options can be found using the command:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            &gt; python FileFetch.py file_list</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            &gt; file = FileFetch(params_file=your_yaml_list)</span>
+<span class="sd">            &gt; df = file.fetch()</span>
+
+
+<span class="sd">        .. _subfetch-label:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># if you need to add a file_type add it to if clause below</span>
+        <span class="c1"># and then create a new &quot;fetch&quot; method to download the data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;html-stream&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">AsyncHTMLSession</span><span class="p">()</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fetch_html_stream</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">link_to_df</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;findlink&quot;</span><span class="p">:</span>
+                <span class="n">doc_url</span><span class="p">,</span> <span class="n">txt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_link</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">doc_url</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv_stream</span><span class="p">(</span><span class="n">doc_url</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="s2">&quot;xlsx&quot;</span><span class="p">:</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">doc_url</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="s2">&quot;pdf&quot;</span><span class="p">:</span>
+                        <span class="n">front</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?&lt;=\/\/).*?(?=\/)&quot;</span><span class="p">,</span> <span class="n">doc_url</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">front</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;www.&quot;</span><span class="p">,</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                        <span class="n">front</span> <span class="o">=</span> <span class="n">front</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+                        <span class="n">back</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([^\/]+$)&quot;</span><span class="p">,</span> <span class="n">doc_url</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">curdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+                        <span class="n">pdf_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">curdir</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">front</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">back</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">download_pdf</span><span class="p">(</span><span class="n">doc_url</span><span class="p">,</span> <span class="n">pdf_name</span><span class="p">)</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="n">parse_pdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">txt</span><span class="p">,</span> <span class="n">pdf_name</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: findlink did not return a document link</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;findlinks&quot;</span><span class="p">:</span>
+                <span class="n">doc_urls</span><span class="p">,</span> <span class="n">txts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_links</span><span class="p">()</span>
+                <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="n">doc_urls</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Searched for multiple links and found the following:&quot;</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">doc_url</span> <span class="ow">in</span> <span class="n">doc_urls</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+                            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv_stream</span><span class="p">(</span><span class="n">doc_url</span><span class="p">)</span>
+                            <span class="n">df_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">doc_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">df_list</span>
+                    <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: findlinks did not return any document links</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv_git_scan</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># pp = pprint.PrettyPrinter(indent=1)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: currently no capability to download file type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: no file type was provided.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Allowable file types are:  &quot;</span><span class="p">)</span>
+            <span class="n">pprint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_list</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Data fetched! Saved to DataFrame.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch_csv"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_csv">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of csv.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch csv but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching file...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                <span class="n">rawdata</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">content</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">unicodify</span><span class="p">(</span><span class="n">rawdata</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+                <span class="c1"># TODO return data and create method for converting to dataframe</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: CSV was not fetched for some reason</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">er</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING:  Requests Timeout Error&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">er</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch_csv_stream"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_csv_stream">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_csv_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_url</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of finklink(s).</span>
+
+<span class="sd">        The findlink option can process various file types (e.g., csv,</span>
+<span class="sd">        xlsx, pdf). This function processes csv file types.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">doc_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">30</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">))</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">er</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING:  Requests Timeout Error&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">er</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch_csv_git_scan"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_csv_git_scan">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_csv_git_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of csv_git_scan.</span>
+
+<span class="sd">        Use this option to scan a list of csv files on GitHub and</span>
+<span class="sd">        only download the most recent one. If you previously downloaded the</span>
+<span class="sd">        most recent file, a message telling you so will be returned instead of</span>
+<span class="sd">        a DataFrame.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch csv-git-scan but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching file...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">check_last_load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">*** UPDATED URL FOUND for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">urlx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">    </span><span class="si">{</span><span class="n">urlx</span><span class="si">}</span><span class="s2"> ***</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">=</span> <span class="s2">&quot;csv&quot;</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">df</span>
+
+        <span class="n">last_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="p">[</span><span class="s2">&quot;last_date&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">You have the most recent version of data: </span><span class="si">{</span><span class="n">last_date</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch_html_stream"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_html_stream">[docs]</a>    <span class="k">async</span> <span class="k">def</span> <span class="nf">fetch_html_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of html_stream.</span>
+
+<span class="sd">        Use this option when the data is streamed as `octet-stream;charset=utf-8`.</span>
+<span class="sd">        Largely used with DataWrapper data downloads. This method provides the rendered</span>
+<span class="sd">        HTML. A call to `link_to_df()` is required afterwards</span>
+<span class="sd">        to convert the HTML to a DataFrame.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        str</span>
+<span class="sd">            Rendered HTML from url.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        FileFetch.link_to_df</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;html-stream&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch html-stream but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  key_phrase is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching html-stream requires a key_phrase to search on&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching file...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># TODO modify call to this method so requires input: key_phrase</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">r</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">arender</span><span class="p">(</span><span class="n">wait</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">r</span></div>
+
+<div class="viewcode-block" id="FileFetch.fetch_link"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_link">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_link</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of finklink.</span>
+
+<span class="sd">        The findlink option searches the url&#39;s html to find a downloadable</span>
+<span class="sd">        file&#39;s link.  The link can point to various file types (e.g., csv,</span>
+<span class="sd">        xlsx, pdf). The returned link will be used to retrieve the data.</span>
+<span class="sd">        The subsquent retrieval method will depend on the file type.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        str</span>
+<span class="sd">            Document link.</span>
+<span class="sd">        str</span>
+<span class="sd">            Any associated text describing the link contents.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        FileFetch.fetch_links</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;findlink&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch findlink but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  tag is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a css tag to search on&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  search terms is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a class or id term to search on&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  you did not provide if this is a nested search&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires setting nested to &#39;yes&#39; or &#39;no&#39;&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  file extension type is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a file extension, e.g., &#39;pdf&#39;, &#39;csv&#39;...&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+
+        <span class="n">whole_section</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">whole_section</span><span class="p">:</span>
+                <span class="n">nested_tag</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">nested_tag</span><span class="p">:</span>
+                    <span class="n">doc</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+                    <span class="n">txt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+                            <span class="n">doc</span> <span class="o">=</span> <span class="n">get_absolute_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">doc</span><span class="p">,</span> <span class="n">txt</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="ow">in</span> <span class="n">whole_section</span><span class="p">:</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+                <span class="n">txt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+                        <span class="n">doc</span> <span class="o">=</span> <span class="n">get_absolute_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">doc</span><span class="p">,</span> <span class="n">txt</span>
+
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="FileFetch.fetch_links"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_links">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of finklinks.</span>
+
+<span class="sd">        The findlinks option searches the url&#39;s html to find two or more downloadable</span>
+<span class="sd">        file links.  The links can point to various file types (e.g., csv,</span>
+<span class="sd">        xlsx, pdf). The returned links will be used to retrieve the data.</span>
+<span class="sd">        The subsquent retrieval method will depend on the file types.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        list</span>
+<span class="sd">            Document links.</span>
+<span class="sd">        list</span>
+<span class="sd">            Any associated text describing the contents of the links.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        FileFetch.fetch_link</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;findlinks&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch findlinks but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  tag is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a css tag to search on&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  search terms is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a class or id term to search on&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  you did not provide if this is a nested search&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires setting nested to &#39;yes&#39; or &#39;no&#39;&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:  file extension type is None&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching link requires a file extension, e.g., &#39;pdf&#39;, &#39;csv&#39;...&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching links...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">req</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+
+        <span class="n">whole_section</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">)</span>
+
+        <span class="n">docs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">txts</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag2</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">whole_section</span><span class="p">:</span>
+                <span class="n">nested_tag</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">nested_tag</span><span class="p">:</span>
+                    <span class="n">doc</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+                    <span class="n">txt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+                            <span class="n">doc</span> <span class="o">=</span> <span class="n">get_absolute_path</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+                        <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+                        <span class="n">txts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">docs</span><span class="p">,</span> <span class="n">txts</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="ow">in</span> <span class="n">whole_section</span><span class="p">:</span>
+                <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
+                <span class="n">txt</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_ext</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;http&quot;</span><span class="p">):</span>
+                        <span class="n">doc</span> <span class="o">=</span> <span class="n">get_absolute_path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+                    <span class="n">docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+                    <span class="n">txts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">txt</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">docs</span><span class="p">,</span> <span class="n">txts</span>
+
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="FileFetch.link_to_df"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.link_to_df">[docs]</a>    <span class="k">def</span> <span class="nf">link_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method called after fetch_html_stream.</span>
+
+<span class="sd">        An auxiliary function called by fetch(). Specifically processes fetch</span>
+<span class="sd">        requests for file_type of html_stream.</span>
+
+<span class="sd">        Must be called after</span>
+<span class="sd">        `fetch_html_stream` to process the rendered HTML into a DataFrame.</span>
+<span class="sd">        Available `file_type` keyword options are listed in</span>
+<span class="sd">        :ref:`file_list &lt;ff-attribute-label&gt;`.  More information on file_list</span>
+<span class="sd">        options can be found using :ref:`this command &lt;ff-filelist-cmd&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+
+
+<span class="sd">        See Also</span>
+<span class="sd">        ----------</span>
+<span class="sd">        FileFetch.fetch_html_stream()</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">links</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">links</span>
+
+            <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">links</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">link</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="p">):</span>
+                    <span class="n">link</span> <span class="o">=</span> <span class="n">link</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="p">)</span>
+                    <span class="n">stream</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+
+                    <span class="k">return</span> <span class="n">df</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FileFetch.download_pdf"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.download_pdf">[docs]</a>    <span class="k">def</span> <span class="nf">download_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdf_url</span><span class="p">,</span> <span class="n">pdf_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Download and save a pdf locally.</span>
+
+<span class="sd">        An auxiliary function called by :ref:`fetch() &lt;fetch-label&gt;`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        pdf_url : str</span>
+<span class="sd">            url pointing to a downloadable pdf.</span>
+<span class="sd">        pdf_name : str</span>
+<span class="sd">            file name under which to save pdf.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        None</span>
+<span class="sd">            Confirmation message with file name printed to screen.</span>
+
+
+<span class="sd">        .. _fetch-label:</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pdf_url</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdf_name</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">pdf saved as </span><span class="si">{</span><span class="n">pdf_name</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileFetch.save"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">ftype</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save pd.DataFrame to csv.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        df : pd.DataFrame</span>
+<span class="sd">            DataFrame to be saved to csv.</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            File name to save DataFrame to.</span>
+<span class="sd">        ftype : str, optional</span>
+<span class="sd">            File type to save DataFrame to. Default is csv. Options: (&#39;csv&#39;, &#39;excel&#39;)</span>
+<span class="sd">        fpath : str, optional</span>
+<span class="sd">            File path to save DataFrame to. Default is run directory.</span>
+<span class="sd">        index : bool, optional</span>
+<span class="sd">            Whether to include index in saved file. Default is False.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -----------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if file successfully saved, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">*** WARNING *** DataFrame is empty. Trying again.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Not a DataFrame for </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">. Skipping save.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="c1"># print message providing latest version date</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="n">today</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+        <span class="n">save_as</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">today</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">ftype</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span> <span class="ow">in</span> <span class="n">fpath</span><span class="p">:</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="n">fpath</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+        <span class="n">checkdir</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>  <span class="c1"># create folder if fpath does not exist</span>
+
+        <span class="k">if</span> <span class="n">fpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fpath</span><span class="si">}{</span><span class="n">save_as</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">full_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">save_as</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">if</span> <span class="n">ftype</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ftype</span> <span class="o">==</span> <span class="s2">&quot;excel&quot;</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">File saved to:</span><span class="se">\t</span><span class="si">{</span><span class="n">full_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># execute only if run as a script</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    No agruments given.  For help or information try:&quot;</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;file_type&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;key_phrase&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">help_opts</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    Too many arguments. For help or information try:&quot;</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;file_type&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;key_phrase&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">help_opts</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;file_list&quot;</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;file_type&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;key_phrase&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">file_info</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;doc&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">FileFetch</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;help&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Hit Ctrl+Z to EXIT Help on class FileFectch...</span><span class="se">\n\</span>
+<span class="s2">        Processing, please wait...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">help</span><span class="p">(</span><span class="n">FileFetch</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">    Unrecognized argument. For help or information try:&quot;</span><span class="p">)</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;url&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;file_type&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="s2">&quot;key_phrase&quot;</span><span class="p">:</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">help_opts</span><span class="p">()</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ########################################################</span>
+<span class="sd">    # Uncomment to test                                    #</span>
+<span class="sd">    ########################################################</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># # key_phrase = &quot;data:application/octet-stream;charset=utf-8,&quot;</span>
+    <span class="c1"># key_phrase = None</span>
+    <span class="c1"># params = {</span>
+    <span class="c1">#     &quot;url&quot;: &quot;http&quot;,</span>
+    <span class="c1">#     &quot;file_type&quot;: &quot;html-stream&quot;,</span>
+    <span class="c1">#     &quot;key_phrase&quot;: key_phrase,</span>
+    <span class="c1"># }</span>
+    <span class="c1"># yaml_file = [&quot;../../url_filefetch.yml&quot;, &quot;minnesota&quot;] # Uncomment</span>
+    <span class="c1">#</span>
+    <span class="c1"># file = FileFetch(params_file=yaml_file) # Uncomment</span>
+    <span class="c1"># file = FileFetch(params)</span>
+
+    <span class="c1"># file.get_description()</span>
+    <span class="c1"># file.get_webref()</span>
+
+    <span class="c1"># df = file.fetch() # Uncomment</span>
+    <span class="c1"># print(df.head())</span>
+
+    <span class="c1"># i = 0</span>
+    <span class="c1"># fnames=[&quot;hhs_table1&quot;, &quot;hhs_table2&quot;, &quot;hhs_table3&quot;]</span>
+    <span class="c1"># fpaths=[&quot;./hhs_icu&quot;, &quot;./hhs_icu&quot;, &quot;./hhs_icu&quot;]</span>
+    <span class="c1"># if isinstance(df, list):</span>
+    <span class="c1">#     for table in df:</span>
+    <span class="c1">#         verify = file.save(table, fname=fnames[i], fpath=fpaths[i])</span>
+    <span class="c1">#         i += 1</span>
+    <span class="c1">#         # print(verify)</span>
+    <span class="c1">#</span>
+    <span class="c1"># print(&quot;DONE&quot;)</span>
+    <span class="c1"># # print(df.dtypes)</span>
+
+    <span class="c1"># file.save(df, fname=&quot;testrun&quot;, fpath=&quot;./&quot;) # Uncomment</span>
+
+    <span class="c1"># # MINNESOTA TESTING</span>
+    <span class="c1"># url = &quot;https://www.health.state.mn.us/diseases/coronavirus/stats/index.html&quot;</span>
+    <span class="c1"># txt = &quot;Weekly COVID-19 Report: 9/10/2020 (PDF)&quot;</span>
+    <span class="c1"># pdf_name = &quot;/home/jennifp3/Documents/Python_scripts/filefetch/health-state-mn-us_covidweekly37.pdf&quot;</span>
+    <span class="c1">#</span>
+    <span class="c1"># df = parse_pdf(url, txt, pdf_name)</span>
+    <span class="c1"># print(df.head())</span>
+
+    <span class="c1"># TODO throw specified error (code) if url connection has a problem</span>
+    <span class="c1"># TODO merge, drop columns, calculate 7-day moving average positivity,</span>
+    <span class="c1"># TODO 7-day moving average for new cases, 14-day % change</span>
+    <span class="c1"># TODO post-processor to clean up files (e.g., change dtypes, header names, merges/joins)</span>
+    <span class="c1"># TODO Load to database - combine with supercharge package</span>
+
+    <span class="c1"># TODO move methods external to class to util.py</span>
+
+    <span class="c1"># TODO: add csv-googledocs for covid tracking project</span>
+    <span class="c1"># TODO: add ability to append a date for reading github JHU</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+    
+    
+        <div class="sidebar-toggle-group no-js">
+            
+            <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
+                 «
+                <span class="show-for-small">hide menu</span>
+                
+            </button>
+            <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
+                
+                <span class="show-for-small">menu</span>
+                <span class="hide-for-small">sidebar</span>
+                 »
+            </button>
+        </div>
+    
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">FileFetch</a></li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, FCA.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+    <!-- cloud_sptheme 1.4 -->
+  </body>
+</html>

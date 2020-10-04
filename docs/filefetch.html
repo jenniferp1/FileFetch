@@ -1,0 +1,867 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Package Contents &#8212; filefetch 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/fontcolor.css" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+
+
+
+
+        <script src="_static/jquery.cookie.js"></script>
+
+
+
+
+        <script src="_static/cloud.base.js"></script>
+
+
+
+
+        <script src="_static/cloud.js"></script>
+
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="filefetch Use Examples" href="examples.html" />
+    <link rel="prev" title="Package Documentation" href="modules.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+    <div class="relbar-top">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="examples.html" title="filefetch Use Examples"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="modules.html" title="Package Documentation"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Package Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Package Contents</a></li>
+      </ul>
+    </div>
+    </div>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+
+  <div class="section" id="package-contents">
+<h1>Package Contents<a class="headerlink" href="#package-contents" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-FileFetch">
+<span id="filefetch-module"></span><h2>FileFetch Module<a class="headerlink" href="#module-FileFetch" title="Permalink to this headline">¶</a></h2>
+<p>Retrieve file or document from a given url.</p>
+<p>When given a set of parameters or yaml file that contain one or more urls,
+will navigate to the url and retrieve a file. File may be fetched using one of
+several methods.
+See <a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a> variable for available methods.
+Retrieved file contents are saved to a pd.DataFrame with option to export to
+a csv.</p>
+<dl>
+<dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
+<p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
+<p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+</dd>
+<dt>Key Variables:</dt><dd><p><a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a> - (list) available file retrieval
+method key words (e.g., <cite>csv</cite>, <cite>html-stream</cite>, <cite>findlink</cite>)</p>
+<p><a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_desc</span></a> - (dict) method defintion and url
+example for each key word listed in file_list</p>
+</dd>
+</dl>
+<p>See information on retrieval methods using</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">file_list</span>
+<span class="go">Output:</span>
+<span class="go">    1. csv: A standard csv file. See &#39;csv-git-scan&#39;.</span>
+<span class="go">            Example: https://www.site.com/myfile.csv</span>
+<span class="go">    2. html-stream: Largely used with DataWrapper where octet-stream;charset=utf-8</span>
+<span class="go">            Example: https://datawrapper.dwcdn.net/awNod/4/</span>
+<span class="go">    3. findlink: For searching html for link to file to download - can retrieve csv, xlsx, or pdf files</span>
+<span class="go">            Example: https://www.example.com/data/index.html</span>
+<span class="go">    4. findlinks: Same as findlink for multiple files on same page</span>
+<span class="go">    5. csv-git-scan: For scanning list of csv files on GitHub and downloading the most recent one. See &#39;csv&#39;.</span>
+<span class="go">            Example: https://github.com/data/tree/master/ListOfFiles</span>
+</pre></div>
+</div>
+<dl>
+<dt>Input Files:</dt><dd><p><a class="reference internal" href="#ff-note-label1"><span class="std std-ref">params yaml</span></a> - url and retrieval method for FileFetch</p>
+<p><a class="reference internal" href="#ff-note-label2"><span class="std std-ref">pdf_formatter.yml</span></a> - information for extracting pdf
+data (must exist in launch directory to retrieve pdf)</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="filefetch-class">
+<span id="filefetch-label"></span><h2>FileFetch Class<a class="headerlink" href="#filefetch-class" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="py class">
+<dt id="FileFetch.FileFetch">
+<em class="property">class </em><code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">FileFetch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">params_file</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve data file(s) from a url.</p>
+<p>Data is saved in a pd.DataFrame and may also
+be exported to a csv. There are several retrieval methods, which are
+defined in <a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a> and
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_desc</span></a>.
+Typical file type for retrieval is
+CSV, but using the findlink(s) option can retrive a PDF or XLSX.
+See <a class="reference internal" href="#ff-note-label"><span class="std std-ref">Notes</span></a> for adding functionality
+to include new file sources or retrieval methods.</p>
+<dl class="field-list simple" id="ff-attribute-label">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>dict, optional</em>) – Provides url and retrieval option; choose either params or params_file.</p></li>
+<li><p><strong>params_file</strong> (<em>list, optional</em>) – Provides url and retrieval option; preferred over using params.</p></li>
+</ul>
+</dd>
+<br />
+<p></p>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Contains data returned by the file retrieval method
+(See <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>).</p></li>
+<li><p><strong>file_list</strong> (<em>list</em>) – Provides all available file retrieval method key words.</p></li>
+<li><p><strong>file_desc</strong> (<em>dict</em>) – Provides method defintion and url example for each key word listed
+in file_list</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a></dt><dd><p>Mixin class to verify input to FileFecth.</p>
+</dd>
+<dt><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a></dt><dd><p>Mixin class to provide help information on FileFetch.</p>
+</dd>
+</dl>
+</div>
+<p class="rubric" id="ff-note-label">Notes</p>
+<p><strong>Extending FileFetch capabilities</strong>:</p>
+<ul class="simple">
+<li><p>Add fetch method keyword to <a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.</p></li>
+<li><p>Add a corresponding description to <a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_desc</span></a>
+for method added to file_list</p></li>
+<li><p>Update <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a> to include addition to file_list</p></li>
+<li><p>Write a <a class="reference internal" href="#subfetch-label"><span class="std std-ref">fetch_*() submethod</span></a> that will be called by fetch to do the work</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A mixin class design is used in building FileFetch attributes. <a class="reference internal" href="#ff-reference-label"><span class="std std-ref">References</span></a> provides more information on mixins.</p>
+</div>
+<p id="ff-note-label1">Recommend using yaml files (see <a class="reference internal" href="#ff-example-label"><span class="std std-ref">Examples</span></a>)
+or <a class="reference external" href="sample-yaml.html">this detailed Discussion</a> to provide input
+to <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>.
+Primary <span class="hl">params yaml</span> file format is</p>
+<p><strong>key_word_header</strong>:</p>
+<blockquote>
+<div><p><strong>description</strong>: &lt;<em>summary for data being retrieved</em>&gt;</p>
+<p><strong>website</strong>: &lt;<em>parent url</em>&gt;</p>
+<p><strong>file_url</strong>: &lt;<em>url to file (may be same as website)</em>&gt;</p>
+<p><strong>file_type</strong>: &lt;<em>e.g., csv, html-stream, findlink</em>&gt;</p>
+<p><strong>key_phrase</strong>: &lt;<em>for html-stream, findlink(s), csv-git-scan; blank otherwise</em>&gt;</p>
+</div></blockquote>
+<div class="admonition note" id="ff-note-label2">
+<p class="admonition-title">Note</p>
+<p>If retrieving a pdf table – <span class="hl">pdf_formatter.yml</span> is required in your run directory. See <a class="reference internal" href="#ff-example-label"><span class="std std-ref">Examples</span></a>.</p>
+</div>
+<p>The pdf_formatter.yml structure is</p>
+<p><strong>url_key_header</strong>:</p>
+<blockquote>
+<div><p><strong>description</strong>: &lt;<em>summary for data table being extracted from pdf</em>&gt;</p>
+<p><strong>notes</strong>: (optional) &lt;<em>any additional notes on use, may leave blank</em>&gt;</p>
+<p><strong>function</strong>: &lt;<em>name of function to use for extracting and formatting data tables</em>&gt;</p>
+</div></blockquote>
+<p class="rubric" id="ff-reference-label">References</p>
+<p><a class="reference external" href="https://www.residentmar.io/2019/07/07/python-mixins.html">Making Python classes more modular using mixins</a></p>
+<p><a class="reference external" href="https://www.thedigitalcatonline.com/blog/2020/03/27/mixin-classes-in-python/">Multiple inheritance and mixin classes in Python</a></p>
+<p class="rubric" id="ff-example-label">Examples</p>
+<p>For additional help and information on <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">file_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">doc</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">help</span>
+</pre></div>
+</div>
+<p>Basic setup and usage:</p>
+<p>(A fully worked example is found <a class="reference external" href="examples.html">here</a>.)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">yaml_file</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_list.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;header_key&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">yaml_file</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="s2">&quot;mydata&quot;</span><span class="p">,</span> <span class="n">fpath</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Sample yaml file for primary input to <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>:</p>
+<p>(Yaml file structure is provided in detail <a class="reference external" href="sample-yaml.html">here</a>.)</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data_in_csv:
+    description: data stored in a csv
+    website: https://example.com
+    file_url: https://example.com/xyz/data.csv
+    file_type: csv
+    key_phrase:
+data_from_html_stream:
+    description: data from DataWrapper
+    website: https://example.com/state-data/
+    file_url: https://datawrapper.setxs.net/owNad/2/
+    file_type: html-stream
+    key_phrase: data:application/octet-stream;charset=utf-8,
+finding_data_download_link:
+    description: programmatically find data file download link in html
+    website: https://example.com/
+    file_url: https://example.com/xyz/dashboard
+    file_type: findlink
+    key_phrase: {&quot;tag&quot;:&quot;main&quot;,&quot;search&quot;:{&quot;id&quot;:&quot;main&quot;},&quot;ftype&quot;:&quot;csv&quot;,&quot;nested&quot;:&quot;yes&quot;}
+searching_list_of_csvs:
+    description: get most recent csv from a list
+    website: https://www.example.org/data/issue-brief/state-data/
+    file_url: https://github.com/MyData/2020-Data/tree/my_master/StateDataActions/
+    file_type: csv-git-scan
+    key_phrase: {&quot;pattern&quot;:&quot;\d{4}-\d{2}-\d{2}&quot;, &quot;last_date&quot;:&quot;2020-08-31&quot;}
+</pre></div>
+</div>
+<p>Sample pdf_formatter.yml required for fetching data from PDFs:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>https://www.your_pdf_url/data/xyz/stats/index.html:
+    description: pdf data table on test results
+    notes: last function argument is page(s) with data table(s), e.g., 1 or 1,2,3
+    function: dframe = call_parse_pdf_weekly_report(pdf_name, txt, 7)
+</pre></div>
+</div>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="filefetch-methods">
+<h2>FileFetch Methods<a class="headerlink" href="#filefetch-methods" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><dl class="py method">
+<dt id="FileFetch.FileFetch.download_pdf">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">download_pdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pdf_url</span></em>, <em class="sig-param"><span class="n">pdf_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.download_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.download_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download and save a pdf locally.</p>
+<p>An auxiliary function called by <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_url</strong> (<em>str</em>) – url pointing to a downloadable pdf.</p></li>
+<li><p><strong>pdf_name</strong> (<em>str</em>) – file name under which to save pdf.</p></li>
+</ul>
+</dd>
+<br>
+<p></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Confirmation message with file name printed to screen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<span class="target" id="fetch-label"></span></dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Master method to retrieve data.</p>
+<p>Based on <cite>file_type</cite> provided to <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>
+in <cite>params_file</cite> or <cite>params</cite>,
+will call the correct <a class="reference internal" href="#subfetch-label"><span class="std std-ref">fetch sub-method</span></a>
+to process the fetch request.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.</p>
+<p id="ff-filelist-cmd">More information on file_list
+options can be found using the command:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">file_list</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">your_yaml_list</span><span class="p">)</span>
+<span class="o">&gt;</span> <span class="n">df</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+</pre></div>
+</div>
+<span class="target" id="subfetch-label"></span></dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_csv">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_csv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of csv.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_csv_git_scan">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_csv_git_scan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_csv_git_scan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_csv_git_scan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of csv_git_scan.</p>
+<p>Use this option to scan a list of csv files on GitHub and
+only download the most recent one. If you previously downloaded the
+most recent file, a message telling you so will be returned instead of
+a DataFrame.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_csv_stream">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_csv_stream</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">doc_url</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_csv_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_csv_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of finklink(s).</p>
+<p>The findlink option can process various file types (e.g., csv,
+xlsx, pdf). This function processes csv file types.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_html_stream">
+<em class="property">async </em><code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_html_stream</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_html_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_html_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of html_stream.</p>
+<p>Use this option when the data is streamed as <cite>octet-stream;charset=utf-8</cite>.
+Largely used with DataWrapper data downloads. This method provides the rendered
+HTML. A call to <cite>link_to_df()</cite> is required afterwards
+to convert the HTML to a DataFrame.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Rendered HTML from url.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#FileFetch.FileFetch.link_to_df" title="FileFetch.FileFetch.link_to_df"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FileFetch.link_to_df()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_link">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_link</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of finklink.</p>
+<p>The findlink option searches the url’s html to find a downloadable
+file’s link.  The link can point to various file types (e.g., csv,
+xlsx, pdf). The returned link will be used to retrieve the data.
+The subsquent retrieval method will depend on the file type.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>str</em> – Document link.</p></li>
+<li><p><em>str</em> – Any associated text describing the link contents.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#FileFetch.FileFetch.fetch_links" title="FileFetch.FileFetch.fetch_links"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FileFetch.fetch_links()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_links">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_links</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retrieve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of finklinks.</p>
+<p>The findlinks option searches the url’s html to find two or more downloadable
+file links.  The links can point to various file types (e.g., csv,
+xlsx, pdf). The returned links will be used to retrieve the data.
+The subsquent retrieval method will depend on the file types.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Document links.</p></li>
+<li><p><em>list</em> – Any associated text describing the contents of the links.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#FileFetch.FileFetch.fetch_link" title="FileFetch.FileFetch.fetch_link"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FileFetch.fetch_link()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.get_description">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">get_description</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.get_description"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.get_description" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print user supplied description from yaml.</p>
+<p>In the params_file yaml, user supplies a description of the dataset.
+This method returns the user’s description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>User-provided description prints to screen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.get_webref">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">get_webref</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.get_webref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.get_webref" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print user supplied parent url from yaml.</p>
+<p>In the params_file yaml, user supplies a parent url if available.
+This method returns that reference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>User-provided parent url prints to screen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.link_to_df">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">link_to_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.link_to_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.link_to_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method called after fetch_html_stream.</p>
+<p>An auxiliary function called by fetch(). Specifically processes fetch
+requests for file_type of html_stream.</p>
+<p>Must be called after
+<cite>fetch_html_stream</cite> to process the rendered HTML into a DataFrame.
+Available <cite>file_type</cite> keyword options are listed in
+<a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a>.  More information on file_list
+options can be found using <a class="reference internal" href="#ff-filelist-cmd"><span class="std std-ref">this command</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#FileFetch.FileFetch.fetch_html_stream" title="FileFetch.FileFetch.fetch_html_stream"><code class="xref py py-meth docutils literal notranslate"><span class="pre">FileFetch.fetch_html_stream()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="FileFetch.FileFetch.save">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">ftype</span><span class="o">=</span><span class="default_value">'csv'</span></em>, <em class="sig-param"><span class="n">fpath</span><span class="o">=</span><span class="default_value">'./'</span></em>, <em class="sig-param"><span class="n">index</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save pd.DataFrame to csv.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – DataFrame to be saved to csv.</p></li>
+<li><p><strong>fname</strong> (<em>str</em>) – File name to save DataFrame to.</p></li>
+<li><p><strong>ftype</strong> (<em>str, optional</em>) – File type to save DataFrame to. Default is csv. Options: (‘csv’, ‘excel’)</p></li>
+<li><p><strong>fpath</strong> (<em>str, optional</em>) – File path to save DataFrame to. Default is run directory.</p></li>
+<li><p><strong>index</strong> (<em>bool, optional</em>) – Whether to include index in saved file. Default is False.</p></li>
+</ul>
+</dd>
+<br>
+<p></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if file successfully saved, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</div>
+<div class="section" id="module-_initialize">
+<span id="initialize-module"></span><h2>_initialize Module<a class="headerlink" href="#module-_initialize" title="Permalink to this headline">¶</a></h2>
+<p>Support FileFetch Class.</p>
+<p>Verifies input to FileFetch is valid. Provides help and error messages to user
+if any input is missing or invalid.</p>
+<dl>
+<dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
+<p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
+<p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="initialize-class">
+<h2>_initialize Class<a class="headerlink" href="#initialize-class" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="initialize.InitializeCheck">
+<span id="_initialize.InitializeCheck"></span><em class="property">class </em><code class="sig-prename descclassname">_initialize.</code><code class="sig-name descname">InitializeCheck</code><a class="reference internal" href="_modules/_initialize.html#InitializeCheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#initialize.InitializeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class used by <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a> to validate user input.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a></dt><dd><p>Class for fetching files.</p>
+</dd>
+<dt><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a></dt><dd><p>Mixin class to provide help information on FileFetch.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="initialize-methods">
+<h2>_initialize Methods<a class="headerlink" href="#initialize-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt id="initialize.InitializeCheck.init_check">
+<span id="_initialize.InitializeCheck.init_check"></span><code class="sig-prename descclassname">InitializeCheck.</code><code class="sig-name descname">init_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span></em>, <em class="sig-param"><span class="n">params_file</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/_initialize.html#InitializeCheck.init_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#initialize.InitializeCheck.init_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate input and initialize FileFetch instance.</p>
+<p>Verifies user input is valid. If anything is missing or invalid, provides
+warning message and directions to user. If all is good, a new instance
+is initialized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> (<em>dict, optional</em>) – Gives url, file_type, and optional key_phrase.</p></li>
+<li><p><strong>params_file</strong> (<em>list, optional</em>) – Provides location of input yaml and a keyword header in the yaml.
+The yaml contains same information as the params dict.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Use either <cite>params</cite> or <cite>parms_file</cite>. Using both throws an error.</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Option using <cite>params_file</cite> is preferred.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Created a new instance.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Define either params or params_file (see sample <a class="reference internal" href="#ff-note-label1"><span class="std std-ref">params_file yaml</span></a> format):</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>my_params = {
+     &quot;url&quot;: &quot;http//www.my.website.com&quot;,
+     &quot;file_type&quot;: &quot;html-stream&quot;,
+     &quot;key_phrase&quot;: data:application/octet-stream;charset=utf-8,
+     }
+
+yaml_file = [&quot;./my_params.yml&quot;, &quot;keyword_header&quot;]
+</pre></div>
+</div>
+<p>Then initialize using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">my_params</span><span class="p">)</span>
+<span class="o">&gt;</span> <span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">yaml_file</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="initialize-functions">
+<h2>_initialize Functions<a class="headerlink" href="#initialize-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="initialize.allowed_files">
+<span id="_initialize.allowed_files"></span><code class="sig-prename descclassname">_initialize.</code><code class="sig-name descname">allowed_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">allowed</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/_initialize.html#allowed_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#initialize.allowed_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a list of allowed file types.</p>
+<p>If user does not provide valid input, prints a message to
+the screen letting user know what options are available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>allowed</strong> (<em>list</em>) – Available file retrieval options.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Prints message to screen</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a></p>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-_help">
+<span id="help-module"></span><h2>_help Module<a class="headerlink" href="#module-_help" title="Permalink to this headline">¶</a></h2>
+<p>Support FileFetch Class.</p>
+<p>Provides command line help and information to user.</p>
+<dl>
+<dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
+<p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
+<p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="help-class">
+<h2>_help Class<a class="headerlink" href="#help-class" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="help.Helper">
+<span id="_help.Helper"></span><em class="property">class </em><code class="sig-prename descclassname">_help.</code><code class="sig-name descname">Helper</code><a class="reference internal" href="_modules/_help.html#Helper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#help.Helper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class used by <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a> for command-line help.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a></dt><dd><p>Class for fetching files.</p>
+</dd>
+<dt><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a></dt><dd><p>Mixin class to verify input to FileFecth.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="help-methods">
+<h2>_help Methods<a class="headerlink" href="#help-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt id="help.Helper.file_info">
+<span id="_help.Helper.file_info"></span><code class="sig-prename descclassname">Helper.</code><code class="sig-name descname">file_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/_help.html#Helper.file_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#help.Helper.file_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print information on file_list options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Prints message to screen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>To access the output, type the following at the command line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span> <span class="n">file_list</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="help.Helper.help_opts">
+<span id="_help.Helper.help_opts"></span><code class="sig-prename descclassname">Helper.</code><code class="sig-name descname">help_opts</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/_help.html#Helper.help_opts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#help.Helper.help_opts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print options for getting more help.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Prints message to screen.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>To access the output, type the following at the command line:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">FileFetch</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinx-toc sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Package Contents</a><ul>
+<li><a class="reference internal" href="#module-FileFetch">FileFetch Module</a></li>
+<li><a class="reference internal" href="#filefetch-class">FileFetch Class</a></li>
+<li><a class="reference internal" href="#filefetch-methods">FileFetch Methods</a></li>
+<li><a class="reference internal" href="#module-_initialize">_initialize Module</a></li>
+<li><a class="reference internal" href="#initialize-class">_initialize Class</a></li>
+<li><a class="reference internal" href="#initialize-methods">_initialize Methods</a></li>
+<li><a class="reference internal" href="#initialize-functions">_initialize Functions</a></li>
+<li><a class="reference internal" href="#module-_help">_help Module</a></li>
+<li><a class="reference internal" href="#help-class">_help Class</a></li>
+<li><a class="reference internal" href="#help-methods">_help Methods</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div class="sphinxprev">
+    <h4>Previous page</h4>
+    <p class="topless"><a href="modules.html"
+                          title="Previous page">&larr; Package Documentation</a></p>
+  </div>
+  <div class="sphinxnext">
+    <h4>Next page</h4>
+    <p class="topless"><a href="examples.html"
+                          title="Next page">&rarr; filefetch Use Examples</a></p>
+  </div>
+  <div class="sphinxhome">
+    <h4>Main page</h4>
+    <p class="topless"><a href="index.html"
+                          title="Main page">&rarr; Return to home</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/filefetch.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+
+        <div class="sidebar-toggle-group no-js">
+
+            <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
+                 «
+                <span class="show-for-small">hide menu</span>
+
+            </button>
+            <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
+
+                <span class="show-for-small">menu</span>
+                <span class="hide-for-small">sidebar</span>
+                 »
+            </button>
+        </div>
+
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="examples.html" title="filefetch Use Examples"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="modules.html" title="Package Documentation"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="modules.html" >Package Documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Package Contents</a></li>
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, FCA.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+    <!-- cloud_sptheme 1.4 -->
+  </body>
+</html>

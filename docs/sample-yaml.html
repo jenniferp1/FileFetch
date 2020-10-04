@@ -1,0 +1,382 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YAML files used by FileFetch &#8212; filefetch 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/fontcolor.css" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+
+
+
+
+        <script src="_static/jquery.cookie.js"></script>
+
+
+
+
+        <script src="_static/cloud.base.js"></script>
+
+
+
+
+        <script src="_static/cloud.js"></script>
+
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Index" href="genindex.html" />
+    <link rel="prev" title="filefetch Use Examples" href="examples.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+    <div class="relbar-top">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="genindex.html" title="Index"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="examples.html" title="filefetch Use Examples"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li>
+      </ul>
+    </div>
+    </div>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+
+  <div class="section" id="yaml-files-used-by-filefetch">
+<h1>YAML files used by FileFetch<a class="headerlink" href="#yaml-files-used-by-filefetch" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Information below pertains to the filefetch package v. 0.0.1 (October 2020)</p>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<dl class="simple">
+<dt>FileFetch uses two different yaml files for providing the required parameters:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#pdf-formatter-label"><span class="std std-ref">pdf_formatter.yml</span></a>: required only when fetching PDFs.</p></li>
+<li><p><a class="reference internal" href="#params-yaml-label"><span class="std std-ref">params yaml file</span></a>: used to provide parameters to FileFetch.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="section" id="pdf-formatter-yml">
+<span id="pdf-formatter-label"></span><h2>pdf_formatter.yml<a class="headerlink" href="#pdf-formatter-yml" title="Permalink to this headline">¶</a></h2>
+<p>The file pdf_formatter.yml is only required when the file to be fetched is a PDF file.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>pdf_formatter.yml must be saved in your run directory to fetch a pdf.</p>
+</div>
+<p>When fetching a pdf, FileFetch assumes there is one or more tables that can be parsed from the pdf using the python package camelot and a specialized function(s) provided by the user.</p>
+<dl class="simple">
+<dt>Therefore, there are several steps for getting a PDF using FileFetch:</dt><dd><ul class="simple">
+<li><p><cite>pdf_formatter.yml</cite> needs to be saved in the directory from which you run your code.</p></li>
+<li><p>A <strong>specialized function</strong> for processing, formatting, and storing the data in a pd.DataFrame needs to be added to <cite>utils.pdfx.py</cite>.</p></li>
+<li><p>A <strong>caller function</strong> to call the specialized function is also required. The caller function is referenced in the <cite>pdf_formatter.yml</cite> and tells the FileFetch code which specialized function to access.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="section" id="sample-pdf-formatter-yml">
+<h3>Sample pdf_formatter.yml<a class="headerlink" href="#sample-pdf-formatter-yml" title="Permalink to this headline">¶</a></h3>
+<p>As of version 0.0.1, FileFetch comes with one specialized function for extracting a PDF table with COVID-19 data from the Minnesota Department of Health.  The sample pdf_formatter.yml below is for this case.</p>
+<p>General format is</p>
+<dl>
+<dt><strong>url_key</strong>:</dt><dd><p><strong>description</strong>: information for user on what the url points to</p>
+<p><strong>notes</strong>: (optional) any additional notes to help the end-user</p>
+<p><strong>function</strong>: string to call <strong>caller function</strong> which in turn will call the <strong>specialized function</strong> for given pdf table(s)</p>
+</dd>
+</dl>
+<p>For the Minnesota Department of Heath, this looks like:</p>
+<a class="reference internal image-reference" href="_images/pdfformatter.png"><img alt="pdf_formatter example format" src="_images/pdfformatter.png" style="width: 700px;" /></a>
+<p>The <strong>url_key</strong> (e.g., www.health.state.mn.us/diseases/coronavirus/stats/index.html) should match the file url given as a parameter to FileFetch when you initialize (see information on creating a <a class="reference internal" href="#params-yaml-label"><span class="std std-ref">params yaml</span></a> for more on this).</p>
+<dl class="simple">
+<dt>The <strong>function</strong> should return a pandas DataFrame, therefore the format of the string provided to <strong>function</strong> should breakdown in to three parts:</dt><dd><ul class="simple">
+<li><p>variable name which will store the DataFrame</p></li>
+<li><p>= sign</p></li>
+<li><p>caller function (with correct arguments)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>it is the user’s responsibility to add the <strong>caller function</strong> and <strong>specialized function</strong> to <cite>utils.pdfx.py</cite>.</p>
+</div>
+</div>
+<div class="section" id="example-caller-function">
+<h3>Example caller function<a class="headerlink" href="#example-caller-function" title="Permalink to this headline">¶</a></h3>
+<p>The <strong>caller function</strong> is simple and only serves to allow the <cite>utils.pdfx.py</cite> master function <cite>parse_pdf()</cite> to execute the <strong>specialized function</strong> without knowing the name of the user’s function ahead of time.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">call_my_pdf_function</span><span class="p">(</span><span class="n">pdf_name</span><span class="p">,</span> <span class="n">pg_nums</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pdf_name</span><span class="p">)</span> <span class="c1"># name of pdf</span>
+    <span class="n">pgs</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pg_nums</span><span class="p">)</span> <span class="c1"># page numbers with tables to parse</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">my_pdf_function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">pgs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-specialized-function">
+<h3>Example specialized function<a class="headerlink" href="#example-specialized-function" title="Permalink to this headline">¶</a></h3>
+<p>The <strong>specialized function</strong> may be simple or complex depending on the format of the table the user needs to extract from the PDF.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_pdf_function</span><span class="p">(</span><span class="n">pdf_name</span><span class="p">,</span> <span class="n">pgs</span><span class="p">):</span>
+   <span class="c1"># use Python package camelot to parse tables</span>
+   <span class="n">tables</span> <span class="o">=</span> <span class="n">camelot</span><span class="o">.</span><span class="n">read_pdf</span><span class="p">(</span><span class="n">pdf_name</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="n">pgs</span><span class="p">)</span>
+   <span class="n">datatable</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+   <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+        <span class="n">whitespace</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">parsing_report</span><span class="p">[</span><span class="s2">&quot;whitespace&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">whitespace</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">whitespace</span>
+            <span class="n">datatable</span> <span class="o">=</span> <span class="n">t</span>
+
+   <span class="n">dframe</span> <span class="o">=</span> <span class="n">datatable</span><span class="o">.</span><span class="n">df</span>
+   <span class="k">return</span> <span class="n">dframe</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>See this <a class="reference external" href="https://camelot-py.readthedocs.io/en/master/user/quickstart.html">quickstart guide</a> for information on using Camelot. There is also this <a class="reference external" href="http://theautomatic.net/2019/05/24/3-ways-to-scrape-tables-from-pdfs-with-python/">discussion</a>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="params-yaml-file">
+<span id="params-yaml-label"></span><h2>params yaml file<a class="headerlink" href="#params-yaml-file" title="Permalink to this headline">¶</a></h2>
+<p>Using a yaml is one way to pass parameters to FileFetch. This is done in the following way:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">yaml_file</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_list.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;unique_header_key&quot;</span><span class="p">]</span>
+<span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">yaml_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example assumes your yaml file is named <strong>url_list.yml</strong> and is
+saved locally in your run directory. You will need to provide the full
+path if the yaml is saved elsewhere.
+More details on initialization can be found <a class="reference internal" href="filefetch.html#ff-example-label"><span class="std std-ref">here</span></a>.</p>
+<p>The <strong>unique_header_key</strong> is taken from url_list.yml and is discussed more in the next section.</p>
+<p>A <a class="reference external" href="./examples.html">real-world example</a> using a params yaml is provided at the link.</p>
+<div class="section" id="sample-params-yaml">
+<h3>Sample params yaml<a class="headerlink" href="#sample-params-yaml" title="Permalink to this headline">¶</a></h3>
+<p>General format is</p>
+<dl>
+<dt><strong>unique header key</strong>:</dt><dd><p><strong>description</strong>: information on data being retrieved</p>
+<p><strong>website</strong>: (optional) parent website (for reference only)</p>
+<p><strong>file_url</strong>: url to file</p>
+<p><strong>file_type</strong>: e.g., csv, txt, html-stream</p>
+<p><strong>key_phrase</strong>: use for html-stream, findlink(s), csv-git-scan (leave blank otherwise)</p>
+</dd>
+</dl>
+<p>As of FileFecth version 0.0.1, there are 5 <strong>file_type</strong> options.  More information is <a class="reference external" href="./filefetch.html">here</a>.</p>
+<dl class="simple">
+<dt><strong>file_type</strong> options:</dt><dd><ul class="simple">
+<li><p><cite>csv</cite>: Fetch a standard csv file.</p></li>
+<li><p><cite>html-stream</cite>: Largely used with DataWrapper where octet-stream;charset=utf-8</p></li>
+<li><p><cite>findlink</cite>: Search html for file link (retrieves csv, xlsx or pdf files)</p></li>
+<li><p><cite>findlinks</cite>: Same as findlink for multiple files on same page</p></li>
+<li><p><cite>csv-git-scan</cite>: Scan list of csvs on GitHub and download most recent</p></li>
+</ul>
+</dd>
+</dl>
+<p>Examples for each file type are provided below.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Multiple fetch params can be stored in the same yaml.  FileFetch uses the <strong>unique_header_key</strong> to identify which file block to read-in.</p>
+</div>
+</div>
+<div class="section" id="example-csv-fetch">
+<h3>Example csv fetch<a class="headerlink" href="#example-csv-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/csvyml.png"><img alt="csv file type example format" src="_images/csvyml.png" style="width: 500px;" /></a>
+<p><strong>key_phrase</strong> is not used with csv <strong>file_type</strong>.  Leave it blank.</p>
+</div>
+<div class="section" id="example-html-stream-fetch">
+<h3>Example html-stream fetch<a class="headerlink" href="#example-html-stream-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/htmlstreamyml.png"><img alt="html stream file type example format" src="_images/htmlstreamyml.png" style="width: 620px;" /></a>
+<p><strong>key_phrase</strong> specifies the this is <cite>data:application/octet-stream;charset=utf-8,</cite>
+When dealing with html-stream <strong>file_type</strong> copy and paste the phrase exactly as
+shown.</p>
+</div>
+<div class="section" id="example-findlink-fetch">
+<h3>Example findlink fetch<a class="headerlink" href="#example-findlink-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/findlinkyml.png"><img alt="find link file type example format" src="_images/findlinkyml.png" style="width: 700px;" /></a>
+<p><strong>key_phrase</strong> is a dict that specifies the html tag and tag attributes you are searching for
+to identify the link.</p>
+<dl class="simple">
+<dt>The dict keys are:</dt><dd><ul class="simple">
+<li><p><cite>tag</cite>: main css tag to search for</p></li>
+<li><p><cite>search</cite>: additional tag and it’s attribute</p></li>
+<li><p><cite>ftype</cite>: (pdf, csv, xlsx) gives the file type</p></li>
+<li><p><cite>nested</cite>: (yes or no) indicates whether the <cite>tag</cite> and <cite>search</cite> keys identify the link directly or if you need to search for the link nested under them.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The Python package BeautifulSoup
+is used to find the link. References for more help understanding the <cite>tag</cite> and <cite>search</cite> values:
+<a class="reference external" href="https://stackoverflow.com/questions/47104192/beautifulsoup-extracting-link-text-and-title-within-child-div">[1]</a>
+<a class="reference external" href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/#attributes">[2]</a>
+<a class="reference external" href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/#quick-start">[3]</a>.</p>
+</div>
+<div class="section" id="example-findlinks-fetch">
+<h3>Example findlinks fetch<a class="headerlink" href="#example-findlinks-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/findlinksyml.png"><img alt="find links file type example format" src="_images/findlinksyml.png" style="width: 750px;" /></a>
+<p>See findlink example for explanation of <strong>key_phrase</strong>.</p>
+</div>
+<div class="section" id="example-csv-git-scan-fetch">
+<h3>Example csv-git-scan fetch<a class="headerlink" href="#example-csv-git-scan-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/csvgitscanyml.png"><img alt="csv git scan file type example format" src="_images/csvgitscanyml.png" style="width: 700px;" /></a>
+<p><strong>key_phrase</strong> is a dict identifying a pattern to search for to identify the latest file.
+The example above assumes the files contain the year-month-day in the file name. The file date is
+extracted from the file name using regex and then compared to the date provided by the user in <cite>last-date</cite>. If
+a file’s date is less recent then the <cite>last-date</cite> provided, it is not retrieved.</p>
+<dl class="simple">
+<dt>The dict keys are:</dt><dd><ul class="simple">
+<li><p><cite>pattern</cite>: regex pattern to extract date from file name. This date is compared to the <cite>last-date</cite>.</p></li>
+<li><p><cite>last-date</cite>: most recent date you have previously downloaded.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinx-toc sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">YAML files used by FileFetch</a><ul>
+<li><a class="reference internal" href="#pdf-formatter-yml">pdf_formatter.yml</a><ul>
+<li><a class="reference internal" href="#sample-pdf-formatter-yml">Sample pdf_formatter.yml</a></li>
+<li><a class="reference internal" href="#example-caller-function">Example caller function</a></li>
+<li><a class="reference internal" href="#example-specialized-function">Example specialized function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#params-yaml-file">params yaml file</a><ul>
+<li><a class="reference internal" href="#sample-params-yaml">Sample params yaml</a></li>
+<li><a class="reference internal" href="#example-csv-fetch">Example csv fetch</a></li>
+<li><a class="reference internal" href="#example-html-stream-fetch">Example html-stream fetch</a></li>
+<li><a class="reference internal" href="#example-findlink-fetch">Example findlink fetch</a></li>
+<li><a class="reference internal" href="#example-findlinks-fetch">Example findlinks fetch</a></li>
+<li><a class="reference internal" href="#example-csv-git-scan-fetch">Example csv-git-scan fetch</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div class="sphinxprev">
+    <h4>Previous page</h4>
+    <p class="topless"><a href="examples.html"
+                          title="Previous page">&larr; filefetch Use Examples</a></p>
+  </div>
+  <div class="sphinxnext">
+    <h4>Next page</h4>
+    <p class="topless"><a href="genindex.html"
+                          title="Next page">&rarr; Index</a></p>
+  </div>
+  <div class="sphinxhome">
+    <h4>Main page</h4>
+    <p class="topless"><a href="index.html"
+                          title="Main page">&rarr; Return to home</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/sample-yaml.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+
+        <div class="sidebar-toggle-group no-js">
+
+            <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
+                 «
+                <span class="show-for-small">hide menu</span>
+
+            </button>
+            <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
+
+                <span class="show-for-small">menu</span>
+                <span class="hide-for-small">sidebar</span>
+                 »
+            </button>
+        </div>
+
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="genindex.html" title="Index"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="examples.html" title="filefetch Use Examples"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li>
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, FCA.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+    <!-- cloud_sptheme 1.4 -->
+  </body>
+</html>

@@ -1,0 +1,793 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Use Examples &#8212; filefetch 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/fontcolor.css" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
+
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+
+
+
+
+        <script src="_static/jquery.cookie.js"></script>
+
+
+
+
+        <script src="_static/cloud.base.js"></script>
+
+
+
+
+        <script src="_static/cloud.js"></script>
+
+
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="YAML files used by FileFetch" href="sample-yaml.html" />
+    <link rel="prev" title="Package Contents" href="filefetch.html" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+    <div class="relbar-top">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="sample-yaml.html" title="YAML files used by FileFetch"
+             accesskey="N">next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="filefetch.html" title="Package Contents"
+             accesskey="P">previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Use Examples</a></li>
+      </ul>
+    </div>
+    </div>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+
+  <div class="section" id="use-examples">
+<h1>Use Examples<a class="headerlink" href="#use-examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="assumptions">
+<h2>Assumptions<a class="headerlink" href="#assumptions" title="Permalink to this headline">¶</a></h2>
+<p>Assumptions used in developing the examples below:</p>
+<ol class="arabic simple">
+<li><p>User created and saved a yaml file in the same directory as that from which the
+code is run. (See  <a class="reference external" href="./sample-yaml.html">yaml
+files</a> for more information on use with filefetch.)</p></li>
+<li><p>The yaml file created by the user is named: <em>url_filefetch.yml</em></p></li>
+<li><p>The filefetch package has not been installed (<a class="reference external" href="https://packaging.python.org/tutorials/">see
+PyPA</a> or this
+<a class="reference external" href="https://stackoverflow.com/questions/1471994/what-is-setup-py">stackoverflow
+answer</a>
+for information on package installation) and so is added manually to <em>sys.path</em>.</p></li>
+</ol>
+</div>
+<div class="section" id="details">
+<h2>Details<a class="headerlink" href="#details" title="Permalink to this headline">¶</a></h2>
+<p>The code below shows how to fetch data from several sites. This covers:</p>
+<ul class="simple">
+<li><p>Accessing an API (format: csv)</p></li>
+<li><p>Extracting a file from a url link (format: pdf)</p></li>
+<li><p>Extracting multiple files from a single webpage (format: csv)</p></li>
+</ul>
+<p>As of filefetch version 0.0.1, xlsx file links can also be retrieved.
+Additional formats (e.g., json, xml) can be included by adding methods
+to the FileFetch Class (additional details
+<a class="reference external" href="./filefetch.html#ff-note-label">here</a>).</p>
+<p>The <a class="reference external" href="./sample-yaml.html#yaml-files-used-by-filefetch">parameter details</a> required by FileFetch have been
+given in the user-provided <a class="reference internal" href="sample-yaml.html#params-yaml-label"><span class="std std-ref">params yaml file</span></a> named <em>url_filefetch.yml</em>.</p>
+</div>
+<div class="section" id="sample-code">
+<h2>Sample code<a class="headerlink" href="#sample-code" title="Permalink to this headline">¶</a></h2>
+<p><strong>Manually add filefetch package to sys.path</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>you will need to update the paths in the code block below to correctly point to where you have the filefetch package saved.</p>
+</div>
+<p>If using any helper packages or self-written modules that are not installed, you can add
+those to <cite>sys.path</cite> in the same manner.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">scandir</span>
+
+<span class="c1"># add filefetch package to sys.path</span>
+
+<span class="n">master</span> <span class="o">=</span> <span class="s2">&quot;/Change-to-location-you-saved-the-package/filefetch_master&quot;</span>
+<span class="n">excludes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__pycache__&quot;</span><span class="p">,</span><span class="s2">&quot;history&quot;</span><span class="p">,</span><span class="s2">&quot;doc&quot;</span><span class="p">,</span><span class="s2">&quot;setup&quot;</span><span class="p">,</span><span class="s2">&quot;.ipynb_checkpoints&quot;</span><span class="p">]</span> <span class="c1"># list of subdirs to ignore</span>
+<span class="n">dirls</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">scandir</span><span class="p">(</span><span class="n">master</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+<span class="n">includes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirls</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">excludes</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">includes</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+
+<span class="c1"># add helper packages and modules to sys.path</span>
+
+<span class="n">modules</span> <span class="o">=</span> <span class="s2">&quot;/Change-to-location-you-saved-any-helper-packages/Modules&quot;</span>
+<span class="n">excludes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__pycache__&quot;</span><span class="p">,</span><span class="s2">&quot;.ipynb_checkpoints&quot;</span><span class="p">]</span> <span class="c1"># list of subdirs to ignore</span>
+<span class="n">dirls</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">scandir</span><span class="p">(</span><span class="n">modules</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+<span class="n">includes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirls</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">excludes</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">includes</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">modules</span><span class="p">)</span>
+
+<span class="n">modules</span> <span class="o">=</span> <span class="s2">&quot;/Change-to-location-you-saved-any-additional-modules/covid&quot;</span>
+<span class="n">excludes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__pycache__&quot;</span><span class="p">,</span><span class="s2">&quot;.ipynb_checkpoints&quot;</span><span class="p">]</span> <span class="c1"># list of subdirs to ignore</span>
+<span class="n">dirls</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">path</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">scandir</span><span class="p">(</span><span class="n">modules</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+<span class="n">includes</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dirls</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">d</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">excludes</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">includes</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">d</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">modules</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Import Python packages</strong></p>
+<p>Now import your added packages and any installed packages that you need.</p>
+<p>Note vdh is an in-house helper module to process Virginia Department of
+Health COVID data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">filefetch.FileFetch</span> <span class="kn">import</span> <span class="n">FileFetch</span>
+<span class="kn">import</span> <span class="nn">vdh</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span>
+<span class="kn">import</span> <span class="nn">calendar</span>
+</pre></div>
+</div>
+<p><strong>Setup the params for FileFetch</strong></p>
+<p>FileFetch is initialized as</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">MY_PARAMS_LIST</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where MY_PARAMS_LIST is a list structured as such:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The first value in the list specifies the location of your <a class="reference external" href="./sample-yaml.html#params-yaml-file">params yaml</a> file.</p></li>
+<li><p>The second value gives the <a class="reference external" href="./sample-yaml.html#sample-params-yaml">unique header key</a> in the yaml that references the desired dataset being fetched.</p></li>
+</ul>
+</div></blockquote>
+<p>In the example below, the params yaml is called <cite>url_filefetch.yml</cite> and is saved in the directory from which you are running the code.
+The unique header keys (<cite>virginia</cite>, <cite>minnesota</cite>, and <cite>hhs_icu</cite>), defined in <cite>url_filefetch.yml</cite>, are for COVID-19 health datasets from Virginia,
+Minnesota, and the U.S. Department of Health and Human Services (HHS).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">va</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_filefetch.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;virginia&quot;</span><span class="p">]</span>
+<span class="n">mn</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_filefetch.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;minnesota&quot;</span><span class="p">]</span>
+<span class="n">hhs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_filefetch.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;hhs_icu&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Define file names to which retrieved dataset will be saved.</strong></p>
+<p><em>fname_hhs</em> is a list since 3 files will be fetched from the same
+website.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fname_va</span> <span class="o">=</span> <span class="s2">&quot;VirginiaTestData&quot;</span>
+<span class="n">fname_mn</span> <span class="o">=</span> <span class="s2">&quot;MinnesotaTestData&quot;</span>
+<span class="n">fname_hhs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HospitalizationData_1&quot;</span><span class="p">,</span> <span class="s2">&quot;HospitalizationData_2&quot;</span><span class="p">,</span> <span class="s2">&quot;HospitalizationData_3&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The code below does the following:</p>
+<ul class="simple">
+<li><p>accesses COVID-19 test data from the <a class="reference external" href="https://data.virginia.gov/Government/VDH-COVID-19-PublicUseDataset-Tests_by-LabReportDa/3u5k-c2gr">Virginia Department of
+Health</a></p></li>
+<li><p>saves it to a csv</p></li>
+<li><p>reads back in the csv to process the data for use</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">va</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+<span class="n">verify</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">fname</span><span class="o">=</span><span class="n">fname_va</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File successfully saved?: </span><span class="si">{</span><span class="n">verify</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">vdh</span><span class="o">.</span><span class="n">clean_vdh</span><span class="p">(</span><span class="s2">&quot;./*.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>url set to &#39;https://data.virginia.gov/resource/3u5k-c2gr.csv&#39;
+file_type is &#39;csv&#39;
+Fetching file...
+
+Data fetched! Saved to DataFrame.
+
+File saved to:  ./VirginiaTestData_2020-10-02.csv
+
+File successfully saved?: True
+
+Processed data saved to ./county/VirginiaCountyTestData_2020-10-02.csv
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;./county/VirginiaCountyTestData_2020-10-02.csv&quot;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong> (processed data)</p>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>lab_report_date</th>
+      <th>Positivity_pcr_7day</th>
+      <th>CityCounty</th>
+      <th>CountyFIPS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2020-09-02</td>
+      <td>0.03645</td>
+      <td>Alexandria</td>
+      <td>51510</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2020-09-02</td>
+      <td>0.07865</td>
+      <td>Amelia</td>
+      <td>51007</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2020-09-02</td>
+      <td>0.07865</td>
+      <td>Buckingham</td>
+      <td>51029</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2020-09-02</td>
+      <td>0.07865</td>
+      <td>Charlotte</td>
+      <td>51037</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2020-09-02</td>
+      <td>0.07865</td>
+      <td>Cumberland</td>
+      <td>51049</td>
+    </tr>
+  </tbody>
+</table>
+</div><p>The code below does the following:</p>
+<ul class="simple">
+<li><p>finds a link to a pdf report with COVID-19 data provided by the
+<a class="reference external" href="https://www.health.state.mn.us/diseases/coronavirus/stats/index.html">Minnesota Department of
+Health</a></p></li>
+<li><p>downloads the pdf</p></li>
+<li><p>extracts a table from the pdf into a pandas DataFrame</p></li>
+</ul>
+<p>This requires a file called
+<a class="reference external" href="sample-yaml.html#pdf-formatter-yml">pdf_formatter.yml</a> be
+saved in your run directory. Information on creating the file can be
+found at the above link.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">mn</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>url set to &#39;https://www.health.state.mn.us/diseases/coronavirus/stats/index.html&#39;
+file_type is &#39;findlink&#39;
+Fetching link...
+
+Downloaded pdf and saved as ./health-state-mn-us_covidweekly40.pdf
+
+Data fetched! Saved to DataFrame.
+</pre></div>
+</div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>County</th>
+      <th>Positive</th>
+      <th>fips</th>
+      <th>state</th>
+      <th>stateiso</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Aitkin</td>
+      <td>2.9</td>
+      <td>27001</td>
+      <td>Minnesota</td>
+      <td>MN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Anoka</td>
+      <td>6.3</td>
+      <td>27003</td>
+      <td>Minnesota</td>
+      <td>MN</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Becker</td>
+      <td>2.1</td>
+      <td>27005</td>
+      <td>Minnesota</td>
+      <td>MN</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Beltrami</td>
+      <td>4.0</td>
+      <td>27007</td>
+      <td>Minnesota</td>
+      <td>MN</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Benton</td>
+      <td>5.3</td>
+      <td>27009</td>
+      <td>Minnesota</td>
+      <td>MN</td>
+    </tr>
+  </tbody>
+</table>
+</div><p>The cell below:</p>
+<ul class="simple">
+<li><p>finds links to 3 csv files containing hospitalization data from
+<a class="reference external" href="https://healthdata.gov/dataset/covid-19-estimated-patient-impact-and-hospital-capacity-state">HHS</a></p></li>
+<li><p>stores the data from each link in a pandas DataFrame</p></li>
+<li><p>returns all the DataFrames as a list</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">hhs</span><span class="p">)</span>
+<span class="n">df_list</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> files were fetched&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>url set to &#39;https://healthdata.gov/dataset/covid-19-estimated-patient-impact-and-hospital-capacity-state&#39;
+file_type is &#39;findlinks&#39;
+Fetching links...
+
+Searched for multiple links and found the following:
+https://healthdata.gov/sites/default/files/estimated_inpatient_all_20201001_1424.csv
+https://healthdata.gov/sites/default/files/estimated_inpatient_covid_20201001_1424.csv
+https://healthdata.gov/sites/default/files/estimated_icu_20201001_1424.csv
+
+3 files were fetched!
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Showing </span><span class="si">{</span><span class="n">fname_hhs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">df_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<blockquote>
+<div><p>Showing HospitalizationData_1</p>
+</div></blockquote>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>state</th>
+      <th>collection_date</th>
+      <th>Inpatient Beds Occupied Estimated</th>
+      <th>Count LL</th>
+      <th>Count UL</th>
+      <th>Percentage of Inpatient Beds Occupied Estimated</th>
+      <th>Percentage LL</th>
+      <th>Percentage UL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>CW</td>
+      <td>2020-08-30</td>
+      <td>460,842</td>
+      <td>458,849</td>
+      <td>462,835</td>
+      <td>63.64</td>
+      <td>62.86</td>
+      <td>64.43</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>CW</td>
+      <td>2020-08-31</td>
+      <td>466,736</td>
+      <td>465,034</td>
+      <td>468,438</td>
+      <td>64.10</td>
+      <td>63.49</td>
+      <td>64.72</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>CW</td>
+      <td>2020-09-01</td>
+      <td>486,997</td>
+      <td>484,939</td>
+      <td>489,056</td>
+      <td>66.48</td>
+      <td>65.76</td>
+      <td>67.20</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>CW</td>
+      <td>2020-09-02</td>
+      <td>496,761</td>
+      <td>494,836</td>
+      <td>498,686</td>
+      <td>67.48</td>
+      <td>66.88</td>
+      <td>68.07</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>CW</td>
+      <td>2020-09-03</td>
+      <td>494,730</td>
+      <td>492,922</td>
+      <td>496,538</td>
+      <td>67.51</td>
+      <td>66.95</td>
+      <td>68.07</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Showing </span><span class="si">{</span><span class="n">fname_hhs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">df_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<blockquote>
+<div><p>Showing HospitalizationData_2</p>
+</div></blockquote>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>state</th>
+      <th>collection_date</th>
+      <th>Inpatient Beds Occupied by COVID-19 Patients Estimated</th>
+      <th>Count LL</th>
+      <th>Count UL</th>
+      <th>Percentage of Inpatient Beds Occupied by COVID-19 Patients Estimated</th>
+      <th>Percentage LL</th>
+      <th>Percentage UL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>CW</td>
+      <td>2020-08-30</td>
+      <td>42,767</td>
+      <td>42,263</td>
+      <td>43,271</td>
+      <td>5.84</td>
+      <td>5.36</td>
+      <td>6.32</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>CW</td>
+      <td>2020-08-31</td>
+      <td>43,219</td>
+      <td>42,762</td>
+      <td>43,677</td>
+      <td>5.87</td>
+      <td>5.47</td>
+      <td>6.28</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>CW</td>
+      <td>2020-09-01</td>
+      <td>44,580</td>
+      <td>44,068</td>
+      <td>45,093</td>
+      <td>6.03</td>
+      <td>5.54</td>
+      <td>6.51</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>CW</td>
+      <td>2020-09-02</td>
+      <td>43,652</td>
+      <td>43,330</td>
+      <td>43,974</td>
+      <td>5.87</td>
+      <td>5.73</td>
+      <td>6.00</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>CW</td>
+      <td>2020-09-03</td>
+      <td>42,840</td>
+      <td>42,343</td>
+      <td>43,338</td>
+      <td>5.79</td>
+      <td>5.21</td>
+      <td>6.36</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Showing </span><span class="si">{</span><span class="n">fname_hhs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">df_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>OUTPUT:</strong></p>
+<blockquote>
+<div><p>Showing HospitalizationData_3</p>
+</div></blockquote>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>state</th>
+      <th>collection_date</th>
+      <th>ICU Beds Occupied Estimated</th>
+      <th>Count LL</th>
+      <th>Count UL</th>
+      <th>Percentage of ICU Beds Occupied Estimated</th>
+      <th>Percentage LL</th>
+      <th>Percentage UL</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>CW</td>
+      <td>2020-08-30</td>
+      <td>68,055</td>
+      <td>67,727</td>
+      <td>68,383</td>
+      <td>65.17</td>
+      <td>64.15</td>
+      <td>66.20</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>CW</td>
+      <td>2020-08-31</td>
+      <td>67,938</td>
+      <td>67,655</td>
+      <td>68,222</td>
+      <td>64.97</td>
+      <td>64.10</td>
+      <td>65.84</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>CW</td>
+      <td>2020-09-01</td>
+      <td>70,812</td>
+      <td>70,567</td>
+      <td>71,057</td>
+      <td>67.53</td>
+      <td>66.76</td>
+      <td>68.29</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>CW</td>
+      <td>2020-09-02</td>
+      <td>71,318</td>
+      <td>71,168</td>
+      <td>71,469</td>
+      <td>67.99</td>
+      <td>67.62</td>
+      <td>68.37</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>CW</td>
+      <td>2020-09-03</td>
+      <td>71,076</td>
+      <td>70,919</td>
+      <td>71,234</td>
+      <td>67.59</td>
+      <td>67.20</td>
+      <td>67.97</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="sphinx-toc sphinxlocaltoc">
+    <h3><a href="index.html">Page contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Use Examples</a><ul>
+<li><a class="reference internal" href="#assumptions">Assumptions</a></li>
+<li><a class="reference internal" href="#details">Details</a></li>
+<li><a class="reference internal" href="#sample-code">Sample code</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div class="sphinxprev">
+    <h4>Previous page</h4>
+    <p class="topless"><a href="filefetch.html"
+                          title="Previous page">&larr; Package Contents</a></p>
+  </div>
+  <div class="sphinxnext">
+    <h4>Next page</h4>
+    <p class="topless"><a href="sample-yaml.html"
+                          title="Next page">&rarr; YAML files used by FileFetch</a></p>
+  </div>
+  <div class="sphinxhome">
+    <h4>Main page</h4>
+    <p class="topless"><a href="index.html"
+                          title="Main page">&rarr; Return to home</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/examples.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+
+        <div class="sidebar-toggle-group no-js">
+
+            <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
+                 «
+                <span class="show-for-small">hide menu</span>
+
+            </button>
+            <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
+
+                <span class="show-for-small">menu</span>
+                <span class="hide-for-small">sidebar</span>
+                 »
+            </button>
+        </div>
+
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="sample-yaml.html" title="YAML files used by FileFetch"
+             >next</a> &nbsp; &nbsp;</li>
+        <li class="right" >
+          <a href="filefetch.html" title="Package Contents"
+             >previous</a> &nbsp; &nbsp;</li>
+    <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+        <li class="nav-item nav-item-this"><a href="">Use Examples</a></li>
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, FCA.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+    <!-- cloud_sptheme 1.4 -->
+  </body>
+</html>

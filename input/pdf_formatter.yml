@@ -1,0 +1,8 @@
+url:
+  description: information on dataset being retrieved
+  notes: (optional) notes on use; e.g., info on function arguments
+  function: string invoking specialized function to process pdf table(s)
+https://www.health.xyz.state.us/diseases/covid/data/index.html:
+  description: State's Department of Health coronavirus data (county-level)
+  notes: pdf_name: do not modify; txt: do not modify; replace 7 with page(s) with table(s) to extract, e.g., 1 or 1,2,3
+  function: dframe = call_parse_mn_weekly_report(pdf_name, txt, 7)
