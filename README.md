@@ -1,4 +1,4 @@
-# FileFetch
+# filefetch
 
 ## What is it?
 
