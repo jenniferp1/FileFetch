@@ -9,6 +9,8 @@ Classes:
     :class:`_help.Helper` - Print user help information for FileFetch
 
     :class:`_initialize.InitializeCheck` - Validate user input to FileFetch
+
+    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame
 """
 # find other in-house packages in directory path
 import os, sys, inspect
@@ -57,6 +59,7 @@ class InitializeCheck:
     --------
     :class:`FileFetch.FileFetch`: Class for fetching files.
     :class:`_help.Helper`: Mixin class to provide help information on FileFetch.
+    :class:`_validate.ValidateCheck`: Mixin class to validate data sources before save to DataFrame.
     """
 
     def init_check(self, params, params_file):

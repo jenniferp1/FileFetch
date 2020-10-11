@@ -14,6 +14,8 @@ Classes:
 
     :class:`_initialize.InitializeCheck` - Validate user input to FileFetch
 
+    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame
+
 Key Variables:
     :ref:`file_list <ff-attribute-label>` - (list) available file retrieval
     method key words (e.g., `csv`, `html-stream`, `findlink`)
@@ -63,7 +65,9 @@ sys.path.insert(0,modules)
 import os
 import time
 import re
+import json
 import pandas as pd
+from pandas import json_normalize
 from io import StringIO
 from datetime import date #, datetime
 import calendar
@@ -75,10 +79,14 @@ from bs4 import BeautifulSoup
 # import pyppdf.patch_pyppeteer
 from requests_html import AsyncHTMLSession
 from urllib.parse import unquote
+import urllib3
+from urllib3 import request
+import certifi
 
 # import Mixins
 import _initialize  # holds initialization-checking methods
 import _help    # holds methods for printing help information
+import _validate # holds methods for validating user specified data sets
 
 # import other homegrown modules
 from utils.readin import checkdir, get_absolute_path
@@ -100,7 +108,7 @@ from utils.pdfx import parse_pdf
 #####################################################
 
 
-class FileFetch(_initialize.InitializeCheck, _help.Helper):
+class FileFetch(_initialize.InitializeCheck, _help.Helper, _validate.ValidateCheck):
     """Retrieve data file(s) from a url.
 
     Data is saved in a pd.DataFrame and may also
@@ -109,6 +117,7 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
     :ref:`file_desc <ff-attribute-label>`.
     Typical file type for retrieval is
     CSV, but using the findlink(s) option can retrive a PDF or XLSX.
+    Additionally, there is a method to return JSON.
     See :ref:`Notes <ff-note-label>` for adding functionality
     to include new file sources or retrieval methods.
 
@@ -136,6 +145,7 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
     --------
     :class:`_initialize.InitializeCheck`: Mixin class to verify input to FileFecth.
     :class:`_help.Helper`: Mixin class to provide help information on FileFetch.
+    :class:`_validate.ValidateCheck`: Mixin class to validate data sources before save to DataFrame.
 
 
     .. _ff-note-label:
@@ -262,6 +272,7 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
             "findlink",
             "findlinks",
             "csv-git-scan",
+            "json",
         ]  # update with allowed file types as add capability
 
         self.file_desc = {
@@ -274,6 +285,8 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
             "findlinks":"Same as findlink for multiple files on same page\n",
             "csv-git-scan":"For scanning list of csv files on GitHub and downloading the most recent one. See 'csv'.\n\
             Example: https://github.com/data/tree/master/ListOfFiles\n",
+            "json":"Save json to DataFrame.\n\
+            Example: https://api.data.uni.edu/epidata/api.php?source=datacast\n",
         } # update when add to file_list
 
         # call mixin InitializeCheck class from _initialize.py to make sure user inputs are valid
@@ -430,6 +443,25 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
 
             if self.file_type == "csv-git-scan":
                 df = self.fetch_csv_git_scan()
+
+            if self.file_type == "json":
+                data = self.fetch_json()
+
+                # If no json retrieved, return empty DataFrame
+                if not data:
+                    df = pd.DataFrame()
+                # Otherwise convert json to DF
+                else:
+                    # get validator name supplied by user in params
+                    validator = self.key_phrase.get("validator")
+                    checkdata_key, results_key = self.key_phrase.get("keys")
+
+                    # convert json data to DataFrame using
+                    # (1) validator or (2) direct conversion (no data validation)
+                    if validator:
+                        df = self.choose_validator(data)    # validate than covnert
+                    else:
+                        df = self.json2df(data, results_key) # direct conversion
 
         else:
             # pp = pprint.PrettyPrinter(indent=1)
@@ -725,6 +757,77 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
         return None, None
 
 
+    def fetch_json(self):
+        """Sub-method to retireve data.
+
+        An auxiliary function called by  :ref:`fetch() <fetch-label>`.
+        Specifically processes fetch requests for `file_type` of json.
+
+        Parameters
+        ------------
+        None
+
+        Returns
+        ----------
+        pd.DataFrame
+            Data retrieved from file.
+        """
+
+        if self.file_type != "json":
+            print(
+                f"\nError: called function to fetch json but your file type is: {self.file_type}"
+            )
+            print("Exiting....")
+            exit()
+
+        # checkdata_key: (1) used to verify successfully got data and
+        # results_key: (2) key in json used to identify lists of results for df
+        checkdata_key, results_key = self.key_phrase.get("keys")
+
+        # how many retries if first fetch fails
+        attempts = self.key_phrase.get("attempts")
+
+        print("\tFetching file...\n")
+
+        time.sleep(1)
+
+        # handle certificate verification and SSL warnings
+        http = urllib3.PoolManager(
+           cert_reqs='CERT_REQUIRED',
+           ca_certs=certifi.where())
+
+        # get data from the API
+        success = False
+        try:
+            r = http.request('GET', self.url, retries=attempts)
+            success = True
+
+        except urllib3.exceptions.HTTPError as e:
+            print(f"\n\t ***Warning: Call failed.")
+            print(f"\t Error code: {e.reason}")
+        except urllib3.exceptions.TimeoutError as e:
+            print(f"\n\t ***Warning: Call failed.")
+            print(f"\t Error code: {e.reason}")
+        except urllib3.exceptions.RequestError as e:
+            print(f"\n\t ***Warning: Call failed.")
+            print(f"\t Error code: {e.reason}")
+        except urllib3.exceptions.NewConnectionError as e:
+            print(f"\n\t ***Warning: Call failed.")
+            print(f"\t Error code: {e.reason}")
+
+        if not success:
+            print("\n\t ***Error: Call failed. Empty data returned.\n")
+            return None
+
+        if checkdata_key in r.data.decode("utf-8"):
+            data = json.loads(r.data.decode("utf-8"))
+        else:
+            print("\n\t ***Error: Wrong data format found. Check URL. Empty data returned.\n")
+            return None
+
+        return data
+
+
     def fetch_links(self):
         """Sub-method to retrieve data.
 
@@ -828,6 +931,34 @@ class FileFetch(_initialize.InitializeCheck, _help.Helper):
                 return docs, txts
 
         return None, None
+
+
+    def json2df(self, data, key):
+        """Convert JSON to pd.DataFrame.
+
+        Given a json data and the data results key, will convert
+        JSON to a DataFrame.
+
+        Parameters
+        -----------
+        data : dict
+            JSON data.
+        key: str
+            Dictionary key for results list in json
+
+        Returns
+        --------
+        pd.DataFrame
+            Data retrieved from JSON.
+        """
+
+        try:
+            df = pd.json_normalize(data, key)
+        except:
+            print("\n\t***Error: JSON to DataFrame conversion failed.\n")
+            df = pd.DataFrame()
+
+        return df
 
 
     def link_to_df(self, results):

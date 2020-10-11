@@ -8,6 +8,8 @@ Classes:
     :class:`_help.Helper` - Print user help information for FileFetch
 
     :class:`_initialize.InitializeCheck` - Validate user input to FileFetch
+
+    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame
 """
 
 class Helper:
@@ -17,6 +19,7 @@ class Helper:
     --------
     :class:`FileFetch.FileFetch`: Class for fetching files.
     :class:`_initialize.InitializeCheck`: Mixin class to verify input to FileFecth.
+    :class:`_validate.ValidateCheck`: Mixin class to validate data sources before save to DataFrame.
     """
 
     def file_info(self):
