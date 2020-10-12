@@ -76,6 +76,8 @@
 <span class="sd">    :class:`_help.Helper` - Print user help information for FileFetch</span>
 
 <span class="sd">    :class:`_initialize.InitializeCheck` - Validate user input to FileFetch</span>
+
+<span class="sd">    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># find other in-house packages in directory path</span>
 <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">inspect</span>
@@ -124,6 +126,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    :class:`FileFetch.FileFetch`: Class for fetching files.</span>
 <span class="sd">    :class:`_help.Helper`: Mixin class to provide help information on FileFetch.</span>
+<span class="sd">    :class:`_validate.ValidateCheck`: Mixin class to validate data sources before save to DataFrame.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="InitializeCheck.init_check"><a class="viewcode-back" href="../filefetch.html#_initialize.InitializeCheck.init_check">[docs]</a>    <span class="k">def</span> <span class="nf">init_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">params_file</span><span class="p">):</span>

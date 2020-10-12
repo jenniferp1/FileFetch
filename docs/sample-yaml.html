@@ -12,37 +12,37 @@
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/fontcolor.css" />
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
-
+    
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/language_data.js"></script>
 
-
-
-
+    
+    
+     
         <script src="_static/jquery.cookie.js"></script>
+    
 
-
-
-
+    
+     
         <script src="_static/cloud.base.js"></script>
+    
 
-
-
-
+    
+     
         <script src="_static/cloud.js"></script>
-
+    
 
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Index" href="genindex.html" />
-    <link rel="prev" title="filefetch Use Examples" href="examples.html" />
+    <link rel="prev" title="Use Examples" href="examples.html" /> 
         <meta name="viewport" content="width=device-width, initial-scale=1">
   </head><body>
     <div class="relbar-top">
-
+        
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -56,21 +56,21 @@
           <a href="genindex.html" title="Index"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="examples.html" title="filefetch Use Examples"
+          <a href="examples.html" title="Use Examples"
              accesskey="P">previous</a> &nbsp; &nbsp;</li>
     <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
 
-        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li>
+        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li> 
       </ul>
     </div>
     </div>
-
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
-
+            
   <div class="section" id="yaml-files-used-by-filefetch">
 <h1>YAML files used by FileFetch<a class="headerlink" href="#yaml-files-used-by-filefetch" title="Permalink to this headline">¶</a></h1>
 <div class="line-block">
@@ -197,11 +197,12 @@ More details on initialization can be found <a class="reference internal" href="
 <p>As of FileFecth version 0.0.1, there are 5 <strong>file_type</strong> options.  More information is <a class="reference external" href="./filefetch.html">here</a>.</p>
 <dl class="simple">
 <dt><strong>file_type</strong> options:</dt><dd><ul class="simple">
-<li><p><cite>csv</cite>: Fetch a standard csv file.</p></li>
+<li><p><cite>csv</cite>: Fetch a standard csv file</p></li>
 <li><p><cite>html-stream</cite>: Largely used with DataWrapper where octet-stream;charset=utf-8</p></li>
 <li><p><cite>findlink</cite>: Search html for file link (retrieves csv, xlsx or pdf files)</p></li>
 <li><p><cite>findlinks</cite>: Same as findlink for multiple files on same page</p></li>
 <li><p><cite>csv-git-scan</cite>: Scan list of csvs on GitHub and download most recent</p></li>
+<li><p><cite>json</cite>: Fetch standard json</p></li>
 </ul>
 </dd>
 </dl>
@@ -263,6 +264,31 @@ a file’s date is less recent then the <cite>last-date</cite> provided, it is n
 </dd>
 </dl>
 </div>
+<div class="section" id="example-json-fetch">
+<h3>Example json fetch<a class="headerlink" href="#example-json-fetch" title="Permalink to this headline">¶</a></h3>
+<a class="reference internal image-reference" href="_images/jsonyml.png"><img alt="json file type example format" src="_images/jsonyml.png" style="width: 700px;" /></a>
+<p><strong>key_phrase</strong> is a dict. The keys are: “keys”, “attempts”, and “validator”.
+Supply 2 values for “keys”: one to check data is returned
+and one to retrieve data results list.  If only 1 key is needed, you can supply the same key twice. In the <strong>Response Example</strong>
+figure below, <cite>result</cite> is the first str in “keys” since it provides the result code to verify data is returned
+and <cite>epidata</cite> is the second str in “keys” because it gives the list of results. <strong>Note</strong>: supplying the “keys” list
+requires knowing your json structure.</p>
+<p>The second key in key_phrase is the number of tries to retrieve data before giving up. The final key is <em>optional</em>.
+If you have a data specific method to validate the data, provide the method name.  Leave blank otherwise.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To validate a new dataset, you must add a validator method to the MixIn class <a class="reference internal" href="filefetch.html#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a>.</p>
+</div>
+<a class="reference internal image-reference" href="_images/jsonexmpl.png"><img alt="json file type example format" src="_images/jsonexmpl.png" style="width: 700px;" /></a>
+<dl class="simple">
+<dt>The dict keys are:</dt><dd><ul class="simple">
+<li><p><cite>keys</cite>: dictionary keys in json - used to make sure data is returned and extract the results list.</p></li>
+<li><p><cite>attempts</cite>: number of attempts at retrieving data before quitting.</p></li>
+<li><p><cite>validator</cite>: (optional) data validator method name in <a class="reference internal" href="filefetch.html#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a>.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
 </div>
 </div>
 
@@ -289,6 +315,7 @@ a file’s date is less recent then the <cite>last-date</cite> provided, it is n
 <li><a class="reference internal" href="#example-findlink-fetch">Example findlink fetch</a></li>
 <li><a class="reference internal" href="#example-findlinks-fetch">Example findlinks fetch</a></li>
 <li><a class="reference internal" href="#example-csv-git-scan-fetch">Example csv-git-scan fetch</a></li>
+<li><a class="reference internal" href="#example-json-fetch">Example json fetch</a></li>
 </ul>
 </li>
 </ul>
@@ -299,17 +326,12 @@ a file’s date is less recent then the <cite>last-date</cite> provided, it is n
   <div class="sphinxprev">
     <h4>Previous page</h4>
     <p class="topless"><a href="examples.html"
-                          title="Previous page">&larr; filefetch Use Examples</a></p>
+                          title="Previous page">&larr; Use Examples</a></p>
   </div>
   <div class="sphinxnext">
     <h4>Next page</h4>
     <p class="topless"><a href="genindex.html"
                           title="Next page">&rarr; Index</a></p>
-  </div>
-  <div class="sphinxhome">
-    <h4>Main page</h4>
-    <p class="topless"><a href="index.html"
-                          title="Main page">&rarr; Return to home</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -330,27 +352,27 @@ a file’s date is less recent then the <cite>last-date</cite> provided, it is n
 <script>$('#searchbox').show(0);</script>
         </div>
       </div>
-
-
+    
+    
         <div class="sidebar-toggle-group no-js">
-
+            
             <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
                  «
                 <span class="show-for-small">hide menu</span>
-
+                
             </button>
             <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
-
+                
                 <span class="show-for-small">menu</span>
                 <span class="hide-for-small">sidebar</span>
                  »
             </button>
         </div>
-
+    
       <div class="clearer"></div>
     </div>
     <div class="relbar-bottom">
-
+        
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
@@ -364,11 +386,11 @@ a file’s date is less recent then the <cite>last-date</cite> provided, it is n
           <a href="genindex.html" title="Index"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="examples.html" title="filefetch Use Examples"
+          <a href="examples.html" title="Use Examples"
              >previous</a> &nbsp; &nbsp;</li>
     <li><a href="index.html">filefetch 0.0.1 documentation</a> &#187;</li>
 
-        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li>
+        <li class="nav-item nav-item-this"><a href="">YAML files used by FileFetch</a></li> 
       </ul>
     </div>
     </div>

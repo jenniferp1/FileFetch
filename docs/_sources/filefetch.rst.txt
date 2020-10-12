@@ -28,6 +28,8 @@ FileFetch Methods
 
   .. automethod:: FileFetch.FileFetch.fetch_html_stream
 
+  .. automethod:: FileFetch.FileFetch.fetch_json
+
   .. automethod:: FileFetch.FileFetch.fetch_link
 
   .. automethod:: FileFetch.FileFetch.fetch_links
@@ -35,6 +37,8 @@ FileFetch Methods
   .. automethod:: FileFetch.FileFetch.get_description
 
   .. automethod:: FileFetch.FileFetch.get_webref
+
+  .. automethod:: FileFetch.FileFetch.json2df
 
   .. automethod:: FileFetch.FileFetch.link_to_df
 
@@ -77,3 +81,22 @@ _help Methods
 .. automethod:: _help.Helper.file_info
 
 .. automethod:: _help.Helper.help_opts
+
+_validate Module
+------------------
+
+.. automodule:: _validate
+
+_validate Class
+-----------------
+
+.. autoclass:: _validate.ValidateCheck
+
+_validate Methods
+-------------------
+
+.. automethod:: _validate.ValidateCheck.choose_validator
+
+.. automethod:: _validate.ValidateCheck.covidcast
+
+.. automethod:: _validate.ValidateCheck.rollback

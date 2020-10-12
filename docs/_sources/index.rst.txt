@@ -20,6 +20,10 @@ Information on the different available retrieval methods, allowable file types,
 formatting the yaml, and running code using filefetch is provided in the
 contents below.
 
+.. image:: _static/PackageDiagram.png
+  :width: 700
+  :alt: package diagram
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
@@ -27,6 +31,7 @@ contents below.
    modules
    examples
    sample-yaml
+   diagram
 
 
 .. toctree::

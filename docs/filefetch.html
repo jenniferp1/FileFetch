@@ -37,7 +37,7 @@
 
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="filefetch Use Examples" href="examples.html" />
+    <link rel="next" title="Use Examples" href="examples.html" />
     <link rel="prev" title="Package Documentation" href="modules.html" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
   </head><body>
@@ -53,7 +53,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="examples.html" title="filefetch Use Examples"
+          <a href="examples.html" title="Use Examples"
              accesskey="N">next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="modules.html" title="Package Documentation"
@@ -87,6 +87,7 @@ a csv.</p>
 <dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
 <p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
 <p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+<p><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a> - Validate data sources before save to DataFrame</p>
 </dd>
 <dt>Key Variables:</dt><dd><p><a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_list</span></a> - (list) available file retrieval
 method key words (e.g., <cite>csv</cite>, <cite>html-stream</cite>, <cite>findlink</cite>)</p>
@@ -128,6 +129,7 @@ defined in <a class="reference internal" href="#ff-attribute-label"><span class=
 <a class="reference internal" href="#ff-attribute-label"><span class="std std-ref">file_desc</span></a>.
 Typical file type for retrieval is
 CSV, but using the findlink(s) option can retrive a PDF or XLSX.
+Additionally, there is a method to return JSON.
 See <a class="reference internal" href="#ff-note-label"><span class="std std-ref">Notes</span></a> for adding functionality
 to include new file sources or retrieval methods.</p>
 <dl class="field-list simple" id="ff-attribute-label">
@@ -137,8 +139,6 @@ to include new file sources or retrieval methods.</p>
 <li><p><strong>params_file</strong> (<em>list, optional</em>) – Provides url and retrieval option; preferred over using params.</p></li>
 </ul>
 </dd>
-<br />
-<p></p>
 <dt class="field-even">Variables</dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Contains data returned by the file retrieval method
@@ -156,6 +156,8 @@ in file_list</p></li>
 </dd>
 <dt><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a></dt><dd><p>Mixin class to provide help information on FileFetch.</p>
 </dd>
+<dt><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a></dt><dd><p>Mixin class to validate data sources before save to DataFrame.</p>
+</dd>
 </dl>
 </div>
 <p class="rubric" id="ff-note-label">Notes</p>
@@ -171,8 +173,7 @@ for method added to file_list</p></li>
 <p class="admonition-title">Note</p>
 <p>A mixin class design is used in building FileFetch attributes. <a class="reference internal" href="#ff-reference-label"><span class="std std-ref">References</span></a> provides more information on mixins.</p>
 </div>
-<p id="ff-note-label1">Recommend using yaml files (see <a class="reference internal" href="#ff-example-label"><span class="std std-ref">Examples</span></a>)
-or <a class="reference external" href="sample-yaml.html">this detailed Discussion</a> to provide input
+<p id="ff-note-label1">Recommend using yaml files (see <a class="reference internal" href="#ff-example-label"><span class="std std-ref">Examples</span></a>) to provide input
 to <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>.
 Primary <span class="hl">params yaml</span> file format is</p>
 <p><strong>key_word_header</strong>:</p>
@@ -205,7 +206,6 @@ Primary <span class="hl">params yaml</span> file format is</p>
 </pre></div>
 </div>
 <p>Basic setup and usage:</p>
-<p>(A fully worked example is found <a class="reference external" href="examples.html">here</a>.)</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">yaml_file</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_list.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;header_key&quot;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">file</span> <span class="o">=</span> <span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">yaml_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">fetch</span><span class="p">()</span>
@@ -214,7 +214,6 @@ Primary <span class="hl">params yaml</span> file format is</p>
 </pre></div>
 </div>
 <p>Sample yaml file for primary input to <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a>:</p>
-<p>(Yaml file structure is provided in detail <a class="reference external" href="sample-yaml.html">here</a>.)</p>
 <div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data_in_csv:
     description: data stored in a csv
     website: https://example.com
@@ -267,8 +266,6 @@ searching_list_of_csvs:
 <li><p><strong>pdf_name</strong> (<em>str</em>) – file name under which to save pdf.</p></li>
 </ul>
 </dd>
-<br>
-<p></p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Confirmation message with file name printed to screen.</p>
 </dd>
@@ -414,6 +411,25 @@ options can be found using <a class="reference internal" href="#ff-filelist-cmd"
 </dd></dl>
 
 <dl class="py method">
+<dt id="FileFetch.FileFetch.fetch_json">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sub-method to retireve data.</p>
+<p>An auxiliary function called by  <a class="reference internal" href="#fetch-label"><span class="std std-ref">fetch()</span></a>.
+Specifically processes fetch requests for <cite>file_type</cite> of json.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="FileFetch.FileFetch.fetch_link">
 <code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">fetch_link</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.fetch_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.fetch_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sub-method to retrieve data.</p>
@@ -514,6 +530,28 @@ This method returns that reference.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="FileFetch.FileFetch.json2df">
+<code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">json2df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.json2df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.json2df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert JSON to pd.DataFrame.</p>
+<p>Given a json data and the data results key, will convert
+JSON to a DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) – JSON data.</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – Dictionary key for results list in json</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Data retrieved from JSON.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="FileFetch.FileFetch.link_to_df">
 <code class="sig-prename descclassname">FileFetch.</code><code class="sig-name descname">link_to_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/FileFetch.html#FileFetch.link_to_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#FileFetch.FileFetch.link_to_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sub-method called after fetch_html_stream.</p>
@@ -555,8 +593,6 @@ options can be found using <a class="reference internal" href="#ff-filelist-cmd"
 <li><p><strong>index</strong> (<em>bool, optional</em>) – Whether to include index in saved file. Default is False.</p></li>
 </ul>
 </dd>
-<br>
-<p></p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if file successfully saved, False otherwise.</p>
 </dd>
@@ -577,6 +613,7 @@ if any input is missing or invalid.</p>
 <dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
 <p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
 <p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+<p><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a> - Validate data sources before save to DataFrame</p>
 </dd>
 </dl>
 </div>
@@ -592,6 +629,8 @@ if any input is missing or invalid.</p>
 <dt><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a></dt><dd><p>Class for fetching files.</p>
 </dd>
 <dt><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a></dt><dd><p>Mixin class to provide help information on FileFetch.</p>
+</dd>
+<dt><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a></dt><dd><p>Mixin class to validate data sources before save to DataFrame.</p>
 </dd>
 </dl>
 </div>
@@ -685,6 +724,7 @@ the screen letting user know what options are available.</p>
 <dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
 <p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
 <p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+<p><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a> - Validate data sources before save to DataFrame</p>
 </dd>
 </dl>
 </div>
@@ -700,6 +740,8 @@ the screen letting user know what options are available.</p>
 <dt><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a></dt><dd><p>Class for fetching files.</p>
 </dd>
 <dt><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a></dt><dd><p>Mixin class to verify input to FileFecth.</p>
+</dd>
+<dt><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a></dt><dd><p>Mixin class to validate data sources before save to DataFrame.</p>
 </dd>
 </dl>
 </div>
@@ -753,6 +795,110 @@ the screen letting user know what options are available.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-_validate">
+<span id="validate-module"></span><h2>_validate Module<a class="headerlink" href="#module-_validate" title="Permalink to this headline">¶</a></h2>
+<p>Support FileFetch Class.</p>
+<p>Verifies retrieved data is valid. Contains specialized functions added
+per data source.</p>
+<dl>
+<dt>Classes:</dt><dd><p><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a> - Save data from a given url in a pd.DataFrame or csv</p>
+<p><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a> - Print user help information for FileFetch</p>
+<p><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a> - Validate user input to FileFetch</p>
+<p><a class="reference internal" href="#validate.ValidateCheck" title="_validate.ValidateCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_validate.ValidateCheck</span></code></a> - Validate data sources before save to DataFrame</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="validate-class">
+<h2>_validate Class<a class="headerlink" href="#validate-class" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="validate.ValidateCheck">
+<span id="_validate.ValidateCheck"></span><em class="property">class </em><code class="sig-prename descclassname">_validate.</code><code class="sig-name descname">ValidateCheck</code><a class="reference internal" href="_modules/_validate.html#ValidateCheck"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#validate.ValidateCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixin class used by <a class="reference internal" href="#filefetch-label"><span class="std std-ref">FileFetch()</span></a> to validate retrieved data.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#FileFetch.FileFetch" title="FileFetch.FileFetch"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileFetch.FileFetch</span></code></a></dt><dd><p>Class for fetching files.</p>
+</dd>
+<dt><a class="reference internal" href="#initialize.InitializeCheck" title="_initialize.InitializeCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">_initialize.InitializeCheck</span></code></a></dt><dd><p>Mixin class to validate user input to FileFetch</p>
+</dd>
+<dt><a class="reference internal" href="#help.Helper" title="_help.Helper"><code class="xref py py-class docutils literal notranslate"><span class="pre">_help.Helper</span></code></a></dt><dd><p>Mixin class to provide help information on FileFetch.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="validate-methods">
+<h2>_validate Methods<a class="headerlink" href="#validate-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="py method">
+<dt id="validate.ValidateCheck.choose_validator">
+<span id="_validate.ValidateCheck.choose_validator"></span><code class="sig-prename descclassname">ValidateCheck.</code><code class="sig-name descname">choose_validator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/_validate.html#ValidateCheck.choose_validator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#validate.ValidateCheck.choose_validator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select user supplied validator method.</p>
+<p>User will need to add new validator methods below if they have
+a new dataset that they need to validate before converting to DataFrame.</p>
+<dl class="simple">
+<dt>Current methods:</dt><dd><ol class="arabic simple">
+<li><p>CMU CovidCast API</p></li>
+</ol>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – Data (json) to be validated.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DataFrame with validated data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="validate.ValidateCheck.covidcast">
+<span id="_validate.ValidateCheck.covidcast"></span><code class="sig-prename descclassname">ValidateCheck.</code><code class="sig-name descname">covidcast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/_validate.html#ValidateCheck.covidcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#validate.ValidateCheck.covidcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>CMU CovidCast data validator.</p>
+<p>Validates data returned from CovidCast API to ensure data is
+not empty or incomplete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – JSON data.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DataFrame with validated JSON data.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="validate.ValidateCheck.rollback">
+<span id="_validate.ValidateCheck.rollback"></span><code class="sig-prename descclassname">ValidateCheck.</code><code class="sig-name descname">rollback</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">delta</span></em>, <em class="sig-param"><span class="n">rollbacks</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/_validate.html#ValidateCheck.rollback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#validate.ValidateCheck.rollback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rollback a day.</p>
+<p>If no valid data is found for a given date step back a day
+and try again.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – Name of dict key for data results list.</p></li>
+<li><p><strong>delta</strong> (<em>int</em>) – Step size (days) to go back.</p></li>
+<li><p><strong>rollbacks</strong> (<em>int</em>) – Number of times to step back before giving up.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) – JSON data.</p></li>
+<li><p><strong>rollbacks</strong> (<em>int</em>) – Number of rollback attempts left.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -762,7 +908,7 @@ the screen letting user know what options are available.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><div class="sphinx-toc sphinxlocaltoc">
-    <h3><a href="index.html">Page contents</a></h3>
+    <h3><a href="index.html">Home Page</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Package Contents</a><ul>
 <li><a class="reference internal" href="#module-FileFetch">FileFetch Module</a></li>
@@ -775,6 +921,9 @@ the screen letting user know what options are available.</p>
 <li><a class="reference internal" href="#module-_help">_help Module</a></li>
 <li><a class="reference internal" href="#help-class">_help Class</a></li>
 <li><a class="reference internal" href="#help-methods">_help Methods</a></li>
+<li><a class="reference internal" href="#module-_validate">_validate Module</a></li>
+<li><a class="reference internal" href="#validate-class">_validate Class</a></li>
+<li><a class="reference internal" href="#validate-methods">_validate Methods</a></li>
 </ul>
 </li>
 </ul>
@@ -788,12 +937,7 @@ the screen letting user know what options are available.</p>
   <div class="sphinxnext">
     <h4>Next page</h4>
     <p class="topless"><a href="examples.html"
-                          title="Next page">&rarr; filefetch Use Examples</a></p>
-  </div>
-  <div class="sphinxhome">
-    <h4>Main page</h4>
-    <p class="topless"><a href="index.html"
-                          title="Main page">&rarr; Return to home</a></p>
+                          title="Next page">&rarr; Use Examples</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -845,7 +989,7 @@ the screen letting user know what options are available.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> &nbsp; &nbsp;</li>
         <li class="right" >
-          <a href="examples.html" title="filefetch Use Examples"
+          <a href="examples.html" title="Use Examples"
              >next</a> &nbsp; &nbsp;</li>
         <li class="right" >
           <a href="modules.html" title="Package Documentation"

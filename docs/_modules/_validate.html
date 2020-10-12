@@ -1,0 +1,333 @@
+
+
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_validate &#8212; filefetch 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/cloud.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/fontcolor.css" />
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Noticia+Text|Open+Sans|Droid+Sans+Mono" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+
+    
+    
+     
+        <script src="../_static/jquery.cookie.js"></script>
+    
+
+    
+     
+        <script src="../_static/cloud.base.js"></script>
+    
+
+    
+     
+        <script src="../_static/cloud.js"></script>
+    
+
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+    <div class="relbar-top">
+        
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">_validate</a></li> 
+      </ul>
+    </div>
+    </div>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for _validate</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Support FileFetch Class.</span>
+
+<span class="sd">Verifies retrieved data is valid. Contains specialized functions added</span>
+<span class="sd">per data source.</span>
+
+<span class="sd">Classes:</span>
+<span class="sd">    :class:`FileFetch.FileFetch` - Save data from a given url in a pd.DataFrame or csv</span>
+
+<span class="sd">    :class:`_help.Helper` - Print user help information for FileFetch</span>
+
+<span class="sd">    :class:`_initialize.InitializeCheck` - Validate user input to FileFetch</span>
+
+<span class="sd">    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># find other in-house packages in directory path</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">inspect</span>
+
+<span class="n">currentdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getfile</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()))</span>
+<span class="p">)</span>
+<span class="n">parentdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">currentdir</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">parentdir</span><span class="p">)</span>
+
+<span class="c1"># import other homegrown modules</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="c1">###################################################################</span>
+<span class="c1">#   INSTRUCTIONS FOR UPDATING: Adding new validator methods</span>
+<span class="c1">#</span>
+<span class="c1"># 1. In choose_validator, add the new validator name to if clause</span>
+<span class="c1"># 2. Add new method called the same as the new validator name</span>
+<span class="c1">#       New method should return a DataFrame if data validate</span>
+<span class="c1">#       OR an empty DataFrame if data not valid</span>
+<span class="c1"># 3. Use the if clause in choose_validator to call your new method</span>
+<span class="c1">#</span>
+<span class="c1">###################################################################</span>
+
+<div class="viewcode-block" id="ValidateCheck"><a class="viewcode-back" href="../filefetch.html#_validate.ValidateCheck">[docs]</a><span class="k">class</span> <span class="nc">ValidateCheck</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Mixin class used by :ref:`FileFetch() &lt;FileFetch-label&gt;` to validate retrieved data.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    :class:`FileFetch.FileFetch`: Class for fetching files.</span>
+<span class="sd">    :class:`_initialize.InitializeCheck`: Mixin class to validate user input to FileFetch</span>
+<span class="sd">    :class:`_help.Helper`: Mixin class to provide help information on FileFetch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#############################################</span>
+    <span class="c1"># PUBLIC METHOD TO SELECT CORRECT VALIDATOR #</span>
+    <span class="c1">#############################################</span>
+
+<div class="viewcode-block" id="ValidateCheck.choose_validator"><a class="viewcode-back" href="../filefetch.html#_validate.ValidateCheck.choose_validator">[docs]</a>    <span class="k">def</span> <span class="nf">choose_validator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Select user supplied validator method.</span>
+
+<span class="sd">        User will need to add new validator methods below if they have</span>
+<span class="sd">        a new dataset that they need to validate before converting to DataFrame.</span>
+
+<span class="sd">        Current methods:</span>
+<span class="sd">            1. CMU CovidCast API</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            Data (json) to be validated.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            DataFrame with validated data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># whether dataset has a validation function</span>
+        <span class="c1"># (supply name of function or leave blank)</span>
+        <span class="n">validator_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validator&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">validator_name</span> <span class="o">==</span> <span class="s2">&quot;covidcast&quot;</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covidcast</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Validator name &#39;</span><span class="si">{</span><span class="n">validator_name</span><span class="si">}</span><span class="s2">&#39;, not found.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">   Empty DataFrame is returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
+
+
+    <span class="c1">#########################</span>
+    <span class="c1"># CMU COVIDCAST METHODS #</span>
+    <span class="c1">#########################</span>
+
+<div class="viewcode-block" id="ValidateCheck.rollback"><a class="viewcode-back" href="../filefetch.html#_validate.ValidateCheck.rollback">[docs]</a>    <span class="k">def</span> <span class="nf">rollback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">rollbacks</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Rollback a day.</span>
+
+<span class="sd">        If no valid data is found for a given date step back a day</span>
+<span class="sd">        and try again.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            Name of dict key for data results list.</span>
+<span class="sd">        delta : int</span>
+<span class="sd">            Step size (days) to go back.</span>
+<span class="sd">        rollbacks : int</span>
+<span class="sd">            Number of times to step back before giving up.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            JSON data.</span>
+<span class="sd">        rollbacks : int</span>
+<span class="sd">            Number of rollback attempts left.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">rollbacks</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">rollbacks</span> <span class="o">-=</span> <span class="mi">1</span>
+
+            <span class="n">day</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d</span><span class="si">{8}</span><span class="s2">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">day</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">day</span> <span class="o">=</span> <span class="n">day</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
+                    <span class="n">start_day</span> <span class="o">=</span> <span class="n">day</span>
+                    <span class="n">day</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">day</span><span class="p">,</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">day</span> <span class="o">=</span> <span class="n">day</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">delta</span><span class="p">)</span>
+                    <span class="n">day</span> <span class="o">=</span> <span class="n">day</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="c1">#update url with rollbacked date</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Replacing </span><span class="si">{</span><span class="n">start_day</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="n">day</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">start_day</span><span class="p">,</span><span class="n">day</span><span class="p">)</span>
+
+                    <span class="c1">#retry call to API using rolled back date</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_json</span><span class="p">()</span>
+
+                <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Date format mismatch&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Rolling back failed. Empty data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">999</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Could not find a start date in url string.&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Rolling back failed. Empty data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">999</span><span class="p">}</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Rolling back failed. Empty data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;result&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">999</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rollbacks</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ValidateCheck.covidcast"><a class="viewcode-back" href="../filefetch.html#_validate.ValidateCheck.covidcast">[docs]</a>    <span class="k">def</span> <span class="nf">covidcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;CMU CovidCast data validator.</span>
+
+<span class="sd">        Validates data returned from CovidCast API to ensure data is</span>
+<span class="sd">        not empty or incomplete.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            JSON data.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            DataFrame with validated JSON data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="n">checkdata_key</span><span class="p">,</span> <span class="n">results_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;keys&quot;</span><span class="p">)</span>
+        <span class="n">rollbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attempts&quot;</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">rollbacks</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Success!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">rollbacks</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json2df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">results_key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">*** WARNING: Too Many Results...Not all your data was returned!&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Try using a smaller time chunk.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">rollbacks</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json2df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">results_key</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">No Results Found. Stepping back a day.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">rollbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rollback</span><span class="p">(</span><span class="n">checkdata_key</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">rollbacks</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">999</span><span class="p">:</span>
+                    <span class="n">rollbacks</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Rollback failed. No data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Unrecognized error code.&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">   Check &#39;url&#39;. Aborting call.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">rollbacks</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: Rollback failed. No data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">df</span></div></div>
+
+    <span class="c1">####### CMU COVIDCAST SECTION END ########</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+    
+    
+        <div class="sidebar-toggle-group no-js">
+            
+            <button class="sidebar-toggle" id="sidebar-hide" title="Hide the sidebar menu">
+                 «
+                <span class="show-for-small">hide menu</span>
+                
+            </button>
+            <button class="sidebar-toggle" id="sidebar-show" title="Show the sidebar menu">
+                
+                <span class="show-for-small">menu</span>
+                <span class="hide-for-small">sidebar</span>
+                 »
+            </button>
+        </div>
+    
+      <div class="clearer"></div>
+    </div>
+    <div class="relbar-bottom">
+        
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> &nbsp; &nbsp;</li>
+    <li><a href="../index.html">filefetch 0.0.1 documentation</a> &#187;</li>
+
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">_validate</a></li> 
+      </ul>
+    </div>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, FCA.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+    <!-- cloud_sptheme 1.4 -->
+  </body>
+</html>

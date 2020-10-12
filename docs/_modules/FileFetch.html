@@ -81,6 +81,8 @@
 
 <span class="sd">    :class:`_initialize.InitializeCheck` - Validate user input to FileFetch</span>
 
+<span class="sd">    :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame</span>
+
 <span class="sd">Key Variables:</span>
 <span class="sd">    :ref:`file_list &lt;ff-attribute-label&gt;` - (list) available file retrieval</span>
 <span class="sd">    method key words (e.g., `csv`, `html-stream`, `findlink`)</span>
@@ -130,7 +132,9 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">json_normalize</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span> <span class="c1">#, datetime</span>
 <span class="kn">import</span> <span class="nn">calendar</span>
@@ -142,10 +146,14 @@
 <span class="c1"># import pyppdf.patch_pyppeteer</span>
 <span class="kn">from</span> <span class="nn">requests_html</span> <span class="kn">import</span> <span class="n">AsyncHTMLSession</span>
 <span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">unquote</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+<span class="kn">from</span> <span class="nn">urllib3</span> <span class="kn">import</span> <span class="n">request</span>
+<span class="kn">import</span> <span class="nn">certifi</span>
 
 <span class="c1"># import Mixins</span>
 <span class="kn">import</span> <span class="nn">_initialize</span>  <span class="c1"># holds initialization-checking methods</span>
 <span class="kn">import</span> <span class="nn">_help</span>    <span class="c1"># holds methods for printing help information</span>
+<span class="kn">import</span> <span class="nn">_validate</span> <span class="c1"># holds methods for validating user specified data sets</span>
 
 <span class="c1"># import other homegrown modules</span>
 <span class="kn">from</span> <span class="nn">utils.readin</span> <span class="kn">import</span> <span class="n">checkdir</span><span class="p">,</span> <span class="n">get_absolute_path</span>
@@ -167,7 +175,7 @@
 <span class="c1">#####################################################</span>
 
 
-<div class="viewcode-block" id="FileFetch"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch">[docs]</a><span class="k">class</span> <span class="nc">FileFetch</span><span class="p">(</span><span class="n">_initialize</span><span class="o">.</span><span class="n">InitializeCheck</span><span class="p">,</span> <span class="n">_help</span><span class="o">.</span><span class="n">Helper</span><span class="p">):</span>
+<div class="viewcode-block" id="FileFetch"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch">[docs]</a><span class="k">class</span> <span class="nc">FileFetch</span><span class="p">(</span><span class="n">_initialize</span><span class="o">.</span><span class="n">InitializeCheck</span><span class="p">,</span> <span class="n">_help</span><span class="o">.</span><span class="n">Helper</span><span class="p">,</span> <span class="n">_validate</span><span class="o">.</span><span class="n">ValidateCheck</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Retrieve data file(s) from a url.</span>
 
 <span class="sd">    Data is saved in a pd.DataFrame and may also</span>
@@ -176,6 +184,7 @@
 <span class="sd">    :ref:`file_desc &lt;ff-attribute-label&gt;`.</span>
 <span class="sd">    Typical file type for retrieval is</span>
 <span class="sd">    CSV, but using the findlink(s) option can retrive a PDF or XLSX.</span>
+<span class="sd">    Additionally, there is a method to return JSON.</span>
 <span class="sd">    See :ref:`Notes &lt;ff-note-label&gt;` for adding functionality</span>
 <span class="sd">    to include new file sources or retrieval methods.</span>
 
@@ -203,6 +212,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    :class:`_initialize.InitializeCheck`: Mixin class to verify input to FileFecth.</span>
 <span class="sd">    :class:`_help.Helper`: Mixin class to provide help information on FileFetch.</span>
+<span class="sd">    :class:`_validate.ValidateCheck`: Mixin class to validate data sources before save to DataFrame.</span>
 
 
 <span class="sd">    .. _ff-note-label:</span>
@@ -329,6 +339,7 @@
             <span class="s2">&quot;findlink&quot;</span><span class="p">,</span>
             <span class="s2">&quot;findlinks&quot;</span><span class="p">,</span>
             <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;json&quot;</span><span class="p">,</span>
         <span class="p">]</span>  <span class="c1"># update with allowed file types as add capability</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">file_desc</span> <span class="o">=</span> <span class="p">{</span>
@@ -341,6 +352,8 @@
             <span class="s2">&quot;findlinks&quot;</span><span class="p">:</span><span class="s2">&quot;Same as findlink for multiple files on same page</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">:</span><span class="s2">&quot;For scanning list of csv files on GitHub and downloading the most recent one. See &#39;csv&#39;.</span><span class="se">\n\</span>
 <span class="s2">            Example: https://github.com/data/tree/master/ListOfFiles</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;json&quot;</span><span class="p">:</span><span class="s2">&quot;Save json to DataFrame.</span><span class="se">\n\</span>
+<span class="s2">            Example: https://api.data.uni.edu/epidata/api.php?source=datacast</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="p">}</span> <span class="c1"># update when add to file_list</span>
 
         <span class="c1"># call mixin InitializeCheck class from _initialize.py to make sure user inputs are valid</span>
@@ -492,11 +505,30 @@
                     <span class="n">df_list</span> <span class="o">=</span> <span class="p">[]</span>
 
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: findlinks did not return any document links</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Error: findlinks did not return any document links</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;csv-git-scan&quot;</span><span class="p">:</span>
                 <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_csv_git_scan</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fetch_json</span><span class="p">()</span>
+
+                <span class="c1"># If no json retrieved, return empty DataFrame</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+                <span class="c1"># Otherwise convert json to DF</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># get validator name supplied by user in params</span>
+                    <span class="n">validator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;validator&quot;</span><span class="p">)</span>
+                    <span class="n">checkdata_key</span><span class="p">,</span> <span class="n">results_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;keys&quot;</span><span class="p">)</span>
+
+                    <span class="c1"># convert json data to DataFrame using</span>
+                    <span class="c1"># (1) validator or (2) direct conversion (no data validation)</span>
+                    <span class="k">if</span> <span class="n">validator</span><span class="p">:</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_validator</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>    <span class="c1"># validate than covnert</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">json2df</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">results_key</span><span class="p">)</span> <span class="c1"># direct conversion</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># pp = pprint.PrettyPrinter(indent=1)</span>
@@ -792,6 +824,77 @@
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="FileFetch.fetch_json"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_json">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sub-method to retireve data.</span>
+
+<span class="sd">        An auxiliary function called by  :ref:`fetch() &lt;fetch-label&gt;`.</span>
+<span class="sd">        Specifically processes fetch requests for `file_type` of json.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ------------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">!=</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Error: called function to fetch json but your file type is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exiting....&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+
+        <span class="c1"># checkdata_key: (1) used to verify successfully got data and</span>
+        <span class="c1"># results_key: (2) key in json used to identify lists of results for df</span>
+        <span class="n">checkdata_key</span><span class="p">,</span> <span class="n">results_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;keys&quot;</span><span class="p">)</span>
+
+        <span class="c1"># how many retries if first fetch fails</span>
+        <span class="n">attempts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_phrase</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attempts&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Fetching file...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># handle certificate verification and SSL warnings</span>
+        <span class="n">http</span> <span class="o">=</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">PoolManager</span><span class="p">(</span>
+           <span class="n">cert_reqs</span><span class="o">=</span><span class="s1">&#39;CERT_REQUIRED&#39;</span><span class="p">,</span>
+           <span class="n">ca_certs</span><span class="o">=</span><span class="n">certifi</span><span class="o">.</span><span class="n">where</span><span class="p">())</span>
+
+        <span class="c1"># get data from the API</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">http</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="n">attempts</span><span class="p">)</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Warning: Call failed.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Error code: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">TimeoutError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Warning: Call failed.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Error code: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Warning: Call failed.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Error code: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">NewConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Warning: Call failed.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> Error code: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Error: Call failed. Empty data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">checkdata_key</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> ***Error: Wrong data format found. Check URL. Empty data returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
 <div class="viewcode-block" id="FileFetch.fetch_links"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.fetch_links">[docs]</a>    <span class="k">def</span> <span class="nf">fetch_links</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sub-method to retrieve data.</span>
 
@@ -895,6 +998,34 @@
                 <span class="k">return</span> <span class="n">docs</span><span class="p">,</span> <span class="n">txts</span>
 
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="FileFetch.json2df"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.json2df">[docs]</a>    <span class="k">def</span> <span class="nf">json2df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convert JSON to pd.DataFrame.</span>
+
+<span class="sd">        Given a json data and the data results key, will convert</span>
+<span class="sd">        JSON to a DataFrame.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        data : dict</span>
+<span class="sd">            JSON data.</span>
+<span class="sd">        key: str</span>
+<span class="sd">            Dictionary key for results list in json</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            Data retrieved from JSON.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">json_normalize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">***Error: JSON to DataFrame conversion failed.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">df</span></div>
 
 
 <div class="viewcode-block" id="FileFetch.link_to_df"><a class="viewcode-back" href="../filefetch.html#FileFetch.FileFetch.link_to_df">[docs]</a>    <span class="k">def</span> <span class="nf">link_to_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">):</span>
