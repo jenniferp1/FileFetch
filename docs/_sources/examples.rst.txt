@@ -36,11 +36,12 @@ given in the user-provided :ref:`params yaml file <params-yaml-label>` named *ur
 Sample code
 -----------
 
-**Manually add filefetch package to sys.path**
+Manually add filefetch package to sys.path (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
-  you will need to update the paths in the code block below to correctly point to where you have the filefetch package saved.
+  You only need to update the paths in the code block below to correctly point to where you have the filefetch package saved if the package is not installed.
 
 If using any helper packages or self-written modules that are not installed, you can add
 those to `sys.path` in the same manner.
@@ -77,7 +78,8 @@ those to `sys.path` in the same manner.
         sys.path.insert(0,d)
     sys.path.insert(0,modules)
 
-**Import Python packages**
+Import Python packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now import your added packages and any installed packages that you need.
 
@@ -93,7 +95,8 @@ Health COVID data.
     from datetime import date
     import calendar
 
-**Setup the params for FileFetch**
+Setup the params for FileFetch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 FileFetch is initialized as
 
@@ -116,7 +119,8 @@ Minnesota, and the U.S. Department of Health and Human Services (HHS).
     mn = ["url_filefetch.yml", "minnesota"]
     hhs = ["url_filefetch.yml", "hhs_icu"]
 
-**Define file names to which retrieved dataset will be saved.**
+Define file names to which retrieved dataset will be saved.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *fname_hhs* is a list since 3 files will be fetched from the same
 website.
@@ -126,6 +130,10 @@ website.
     fname_va = "VirginiaTestData"
     fname_mn = "MinnesotaTestData"
     fname_hhs = ["HospitalizationData_1", "HospitalizationData_2", "HospitalizationData_3"]
+
+
+Initialize and retrieve files with FileFetch
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The code below does the following:
 

@@ -105,10 +105,11 @@ given in the user-provided <a class="reference internal" href="sample-yaml.html#
 </div>
 <div class="section" id="sample-code">
 <h2>Sample code<a class="headerlink" href="#sample-code" title="Permalink to this headline">¶</a></h2>
-<p><strong>Manually add filefetch package to sys.path</strong></p>
+<div class="section" id="manually-add-filefetch-package-to-sys-path-optional">
+<h3>Manually add filefetch package to sys.path (optional)<a class="headerlink" href="#manually-add-filefetch-package-to-sys-path-optional" title="Permalink to this headline">¶</a></h3>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>you will need to update the paths in the code block below to correctly point to where you have the filefetch package saved.</p>
+<p>You only need to update the paths in the code block below to correctly point to where you have the filefetch package saved if the package is not installed.</p>
 </div>
 <p>If using any helper packages or self-written modules that are not installed, you can add
 those to <cite>sys.path</cite> in the same manner.</p>
@@ -143,7 +144,9 @@ those to <cite>sys.path</cite> in the same manner.</p>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">modules</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Import Python packages</strong></p>
+</div>
+<div class="section" id="import-python-packages">
+<h3>Import Python packages<a class="headerlink" href="#import-python-packages" title="Permalink to this headline">¶</a></h3>
 <p>Now import your added packages and any installed packages that you need.</p>
 <p>Note vdh is an in-house helper module to process Virginia Department of
 Health COVID data.</p>
@@ -155,7 +158,9 @@ Health COVID data.</p>
 <span class="kn">import</span> <span class="nn">calendar</span>
 </pre></div>
 </div>
-<p><strong>Setup the params for FileFetch</strong></p>
+</div>
+<div class="section" id="setup-the-params-for-filefetch">
+<h3>Setup the params for FileFetch<a class="headerlink" href="#setup-the-params-for-filefetch" title="Permalink to this headline">¶</a></h3>
 <p>FileFetch is initialized as</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">FileFetch</span><span class="p">(</span><span class="n">params_file</span><span class="o">=</span><span class="n">MY_PARAMS_LIST</span><span class="p">)</span>
 </pre></div>
@@ -175,7 +180,9 @@ Minnesota, and the U.S. Department of Health and Human Services (HHS).</p>
 <span class="n">hhs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;url_filefetch.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;hhs_icu&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
-<p><strong>Define file names to which retrieved dataset will be saved.</strong></p>
+</div>
+<div class="section" id="define-file-names-to-which-retrieved-dataset-will-be-saved">
+<h3>Define file names to which retrieved dataset will be saved.<a class="headerlink" href="#define-file-names-to-which-retrieved-dataset-will-be-saved" title="Permalink to this headline">¶</a></h3>
 <p><em>fname_hhs</em> is a list since 3 files will be fetched from the same
 website.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fname_va</span> <span class="o">=</span> <span class="s2">&quot;VirginiaTestData&quot;</span>
@@ -183,6 +190,9 @@ website.</p>
 <span class="n">fname_hhs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;HospitalizationData_1&quot;</span><span class="p">,</span> <span class="s2">&quot;HospitalizationData_2&quot;</span><span class="p">,</span> <span class="s2">&quot;HospitalizationData_3&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="initialize-and-retrieve-files-with-filefetch">
+<h3>Initialize and retrieve files with FileFetch<a class="headerlink" href="#initialize-and-retrieve-files-with-filefetch" title="Permalink to this headline">¶</a></h3>
 <p>The code below does the following:</p>
 <ul class="simple">
 <li><p>accesses COVID-19 test data from the <a class="reference external" href="https://data.virginia.gov/Government/VDH-COVID-19-PublicUseDataset-Tests_by-LabReportDa/3u5k-c2gr">Virginia Department of
@@ -688,6 +698,7 @@ https://healthdata.gov/sites/default/files/estimated_icu_20201001_1424.csv
 </table>
 </div></div>
 </div>
+</div>
 
 
             <div class="clearer"></div>
@@ -696,12 +707,19 @@ https://healthdata.gov/sites/default/files/estimated_icu_20201001_1424.csv
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper"><div class="sphinx-toc sphinxlocaltoc">
-    <h3><a href="index.html">Page contents</a></h3>
+    <h3><a href="index.html">Home</a></h3>
     <ul>
 <li><a class="reference internal" href="#">Use Examples</a><ul>
 <li><a class="reference internal" href="#assumptions">Assumptions</a></li>
 <li><a class="reference internal" href="#details">Details</a></li>
-<li><a class="reference internal" href="#sample-code">Sample code</a></li>
+<li><a class="reference internal" href="#sample-code">Sample code</a><ul>
+<li><a class="reference internal" href="#manually-add-filefetch-package-to-sys-path-optional">Manually add filefetch package to sys.path (optional)</a></li>
+<li><a class="reference internal" href="#import-python-packages">Import Python packages</a></li>
+<li><a class="reference internal" href="#setup-the-params-for-filefetch">Setup the params for FileFetch</a></li>
+<li><a class="reference internal" href="#define-file-names-to-which-retrieved-dataset-will-be-saved">Define file names to which retrieved dataset will be saved.</a></li>
+<li><a class="reference internal" href="#initialize-and-retrieve-files-with-filefetch">Initialize and retrieve files with FileFetch</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -716,11 +734,6 @@ https://healthdata.gov/sites/default/files/estimated_icu_20201001_1424.csv
     <h4>Next page</h4>
     <p class="topless"><a href="sample-yaml.html"
                           title="Next page">&rarr; YAML files used by FileFetch</a></p>
-  </div>
-  <div class="sphinxhome">
-    <h4>Main page</h4>
-    <p class="topless"><a href="index.html"
-                          title="Main page">&rarr; Return to home</a></p>
   </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
