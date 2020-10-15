@@ -84,14 +84,14 @@ from urllib3 import request
 import certifi
 
 # import Mixins
-import _initialize  # holds initialization-checking methods
-import _help    # holds methods for printing help information
-import _validate # holds methods for validating user specified data sets
+from filefetch import _initialize  # holds initialization-checking methods
+from filefetch import _help    # holds methods for printing help information
+from filefetch import _validate # holds methods for validating user specified data sets
 
 # import other homegrown modules
-from utils.readin import checkdir, get_absolute_path
-from utils.readin import read_yaml, unicodify, check_last_load
-from utils.pdfx import parse_pdf
+from utilsx.readin import checkdir, get_absolute_path
+from utilsx.readin import read_yaml, unicodify, check_last_load
+from utilsx.pdfx import parse_pdf
 
 
 

@@ -22,7 +22,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 # import other homegrown modules
-from utils.readin import read_yaml
+from utilsx.readin import read_yaml
 
 
 def allowed_files(allowed):
