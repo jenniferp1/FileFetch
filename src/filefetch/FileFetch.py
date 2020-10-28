@@ -48,18 +48,10 @@ Input Files:
 
 """
 ############################################
-# Set up paths to Modules & add to sys.path
+# Import Packages
 ############################################
 """
-import sys
-from os import scandir
-modules = "/home/jennifp3/Documents/Python_scripts/Modules"
-excludes = ["__pycache__",".ipynb_checkpoints"] # list of subdirs to ignore
-dirls = [f.path for f in scandir(modules) if f.is_dir()]
-includes = [d for d in dirls if not any(x in d for x in excludes)]
-for d in includes:
-    sys.path.insert(0,d)
-sys.path.insert(0,modules)
+
 
 # import standard Python packages
 import os
@@ -70,7 +62,6 @@ import pandas as pd
 from pandas import json_normalize
 from io import StringIO
 from datetime import date #, datetime
-import calendar
 from pprint import pprint
 
 # import packages for hitting websites
@@ -1112,60 +1103,3 @@ if __name__ == "__main__":
             print("\n    Unrecognized argument. For help or information try:")
             file = FileFetch(params={"url":"","file_type":"","key_phrase":""})
             file.help_opts()
-
-    """
-    ########################################################
-    # Uncomment to test                                    #
-    ########################################################
-    """
-
-    # # key_phrase = "data:application/octet-stream;charset=utf-8,"
-    # key_phrase = None
-    # params = {
-    #     "url": "http",
-    #     "file_type": "html-stream",
-    #     "key_phrase": key_phrase,
-    # }
-    # yaml_file = ["../../url_filefetch.yml", "minnesota"] # Uncomment
-    #
-    # file = FileFetch(params_file=yaml_file) # Uncomment
-    # file = FileFetch(params)
-
-    # file.get_description()
-    # file.get_webref()
-
-    # df = file.fetch() # Uncomment
-    # print(df.head())
-
-    # i = 0
-    # fnames=["hhs_table1", "hhs_table2", "hhs_table3"]
-    # fpaths=["./hhs_icu", "./hhs_icu", "./hhs_icu"]
-    # if isinstance(df, list):
-    #     for table in df:
-    #         verify = file.save(table, fname=fnames[i], fpath=fpaths[i])
-    #         i += 1
-    #         # print(verify)
-    #
-    # print("DONE")
-    # # print(df.dtypes)
-
-    # file.save(df, fname="testrun", fpath="./") # Uncomment
-
-    # # MINNESOTA TESTING
-    # url = "https://www.health.state.mn.us/diseases/coronavirus/stats/index.html"
-    # txt = "Weekly COVID-19 Report: 9/10/2020 (PDF)"
-    # pdf_name = "/home/jennifp3/Documents/Python_scripts/filefetch/health-state-mn-us_covidweekly37.pdf"
-    #
-    # df = parse_pdf(url, txt, pdf_name)
-    # print(df.head())
-
-    # TODO throw specified error (code) if url connection has a problem
-    # TODO merge, drop columns, calculate 7-day moving average positivity,
-    # TODO 7-day moving average for new cases, 14-day % change
-    # TODO post-processor to clean up files (e.g., change dtypes, header names, merges/joins)
-    # TODO Load to database - combine with supercharge package
-
-    # TODO move methods external to class to util.py
-
-    # TODO: add csv-googledocs for covid tracking project
-    # TODO: add ability to append a date for reading github JHU

@@ -12,14 +12,7 @@ Classes:
 
     :class:`_validate.ValidateCheck` - Validate data sources before save to DataFrame
 """
-# find other in-house packages in directory path
-import os, sys, inspect
 
-currentdir = os.path.dirname(
-    os.path.abspath(inspect.getfile(inspect.currentframe()))
-)
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
 
 # import other homegrown modules
 from utilsx.readin import read_yaml
